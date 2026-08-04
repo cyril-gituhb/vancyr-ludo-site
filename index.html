@@ -5,15 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KELVIN LOVING 🏖️</title>
     
+    <!-- Scripts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <script>
+        // CONFIGURATION SUPABASE
         const SUPABASE_URL = 'https://oemqhxmmoxykrqqhwnqq.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lbXFoeG1tb3h5a3JxcWh3bnFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3OTM3MzksImV4cCI6MjEwMTM2OTczOX0.F7lVdMft0gQEyGiQYrnE5BMaTcu3nxMQa8D1CX0icbQ';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // On utilise un nom différent pour la variable de client
+        let sbClient;
+        try {
+            sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } catch(e) {
+            console.error("Erreur d'initialisation Supabase");
+        }
 
         tailwind.config = {
             darkMode: 'class',
@@ -22,148 +31,93 @@
     </script>
 
     <style>
+        /* x-cloak masque les éléments tant que AlpineJS n'est pas chargé */
         [x-cloak] { display: none !important; }
         .heart-shape {
             clip-path: path("M225,400 C225,400 0,280 0,140 A100,100 0 0,1 225,140 A100,100 0 0,1 450,140 C450,280 225,400 225,400 Z");
             background: white;
         }
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body x-data="kelvinApp" class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans overflow-x-hidden">
+<body class="bg-slate-50 dark:bg-slate-950 min-h-screen font-sans">
 
-    <!-- ÉCRAN D'ACCUEIL / INSCRIPTION -->
-    <template x-if="!session">
-        <div class="flex flex-col items-center pt-10">
-            <h1 class="text-4xl font-black text-brand-600 mb-6 tracking-tighter">KELVIN LOVING</h1>
-            
-            <div class="relative w-[450px] h-[550px] flex items-center justify-center">
-                <div class="heart-shape absolute inset-0 shadow-2xl border border-slate-100"></div>
+    <div x-data="kelvinApp" x-cloak>
+        <!-- ÉCRAN D'ACCUEIL / INSCRIPTION -->
+        <template x-if="!session">
+            <div class="flex flex-col items-center pt-10 px-4">
+                <h1 class="text-4xl font-black text-brand-600 mb-6 tracking-tighter">KELVIN LOVING</h1>
                 
-                <form @submit.prevent="handleAuth" class="relative z-10 w-full px-14 pt-12 flex flex-col gap-2">
-                    <h2 class="text-center font-bold text-slate-700 text-lg mb-2" x-text="mode === 'signup' ? 'REJOINDRE LE CAMPUS' : 'CONNEXION'"></h2>
+                <div class="relative w-full max-w-[450px] aspect-[450/550] flex items-center justify-center">
+                    <!-- Forme de coeur -->
+                    <div class="heart-shape absolute inset-0 shadow-2xl border border-slate-100"></div>
                     
-                    <template x-if="mode === 'signup'">
-                        <div class="space-y-2">
-                            <input type="text" x-model="form.name" placeholder="Nom Complet" class="w-full p-2 text-sm border-b outline-none" required>
-                            <div class="flex gap-2">
-                                <select x-model="form.gender" class="flex-1 p-2 text-sm border-b">
-                                    <option value="Fille">Fille 🚺</option>
-                                    <option value="Garçon">Garçon 🚹</option>
-                                </select>
-                                <input type="number" x-model="form.age" placeholder="Âge" class="w-16 p-2 text-sm border-b" required>
-                            </div>
-                            <input type="text" x-model="form.university" placeholder="Université" class="w-full p-2 text-sm border-b">
-                            <input type="file" @change="uploadFile = $event.target.files[0]" class="text-[10px] mt-2">
-                        </div>
-                    </template>
-
-                    <input type="email" x-model="form.email" placeholder="Email" class="w-full p-2 text-sm border-b" required>
-                    <input type="password" x-model="form.password" placeholder="Mot de passe" class="w-full p-2 text-sm border-b" required>
-
-                    <button type="submit" class="bg-brand-600 text-white font-black py-4 rounded-full mt-4 shadow-xl flex items-center justify-center gap-2" :disabled="loading">
-                        <span x-show="!loading" x-text="mode === 'signup' ? 'REJOINDRE' : 'SE CONNECTER'"></span>
-                        <iconify-icon x-show="loading" icon="line-md:loading-twotone-loop" width="20"></iconify-icon>
-                    </button>
-
-                    <button type="button" @click="mode = (mode === 'signup' ? 'login' : 'signup')" class="text-[11px] text-slate-400 mt-2 text-center">
-                        <span x-text="mode === 'signup' ? 'Déjà un compte ?' : 'Pas inscrit ?'"></span> 
-                        <span class="text-brand-600 font-bold">Clique ici</span>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </template>
-
-    <!-- ÉCRAN PRINCIPAL (DASHBOARD) -->
-    <template x-if="session">
-        <div class="flex h-screen overflow-hidden">
-            <!-- Sidebar -->
-            <aside class="w-80 border-r dark:border-slate-800 flex flex-col glass">
-                <div class="p-6 border-b dark:border-slate-800">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-full bg-brand-100 overflow-hidden border-2 border-brand-600">
-                            <img :src="profile?.avatar_url ? `https://oemqhxmmoxykrqqhwnqq.supabase.co/storage/v1/object/public/avatars/${profile.avatar_url}` : 'https://via.placeholder.com/100'" class="w-full h-full object-cover">
-                        </div>
-                        <div>
-                            <p class="font-bold dark:text-white" x-text="profile?.full_name"></p>
-                            <span class="text-[10px] text-brand-600 font-bold uppercase" x-text="profile?.gender"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex-1 overflow-y-auto p-4 space-y-4">
-                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">À proximité (km)</h3>
-                    <template x-for="user in nearbyUsers" :key="user.id">
-                        <div @click="startChat(user)" class="flex items-center gap-3 p-3 rounded-2xl hover:bg-white dark:hover:bg-slate-800 cursor-pointer transition-all shadow-sm">
-                            <div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden border">
-                                <img :src="user.avatar_url ? `https://oemqhxmmoxykrqqhwnqq.supabase.co/storage/v1/object/public/avatars/${user.avatar_url}` : 'https://via.placeholder.com/100'" class="w-full h-full object-cover">
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-bold dark:text-white" x-text="user.full_name"></p>
-                                <p class="text-[10px] text-slate-500" x-text="`${user.age} ans • ${user.distance} km`"></p>
-                            </div>
-                            <div class="w-2 h-2 rounded-full" :class="user.is_occupied ? 'bg-red-500' : 'bg-green-500'"></div>
-                        </div>
-                    </template>
-                </div>
-
-                <button @click="signOut" class="p-4 text-xs font-bold text-red-500 border-t dark:border-slate-800">DÉCONNEXION</button>
-            </aside>
-
-            <!-- Chat Area -->
-            <main class="flex-1 flex flex-col bg-white dark:bg-slate-900 relative">
-                <template x-if="activeChat">
-                    <div class="flex flex-col h-full">
-                        <header class="p-4 border-b dark:border-slate-800 flex justify-between items-center glass">
-                            <div class="flex items-center gap-3">
-                                <div class="font-bold dark:text-white" x-text="activeChat.full_name"></div>
-                                <span class="px-2 py-1 bg-brand-50 text-[10px] text-brand-600 rounded-full font-bold">EN LIGNE</span>
-                            </div>
-                            <button @click="activeChat = null" class="text-slate-400"><iconify-icon icon="mdi:close" width="24"></iconify-icon></button>
-                        </header>
+                    <form @submit.prevent="handleAuth" class="relative z-10 w-full px-10 pt-10 flex flex-col gap-2">
+                        <h2 class="text-center font-bold text-slate-700 text-lg mb-2" x-text="mode === 'signup' ? 'REJOINDRE LE CAMPUS' : 'CONNEXION'"></h2>
                         
-                        <div class="flex-1 p-6 overflow-y-auto space-y-4" id="chat-box">
-                            <template x-for="msg in messages" :key="msg.id">
-                                <div :class="msg.sender_id === session.user.id ? 'flex justify-end' : 'flex justify-start'">
-                                    <div :class="msg.sender_id === session.user.id ? 'bg-brand-600 text-white' : 'bg-slate-100 dark:bg-slate-800 dark:text-white'" 
-                                         class="max-w-xs p-4 rounded-3xl shadow-md text-sm" x-text="msg.content"></div>
+                        <template x-if="mode === 'signup'">
+                            <div class="space-y-2">
+                                <input type="text" x-model="form.name" placeholder="Nom Complet" class="w-full p-2 text-sm border-b outline-none focus:border-brand-600" required>
+                                <div class="flex gap-2">
+                                    <select x-model="form.gender" class="flex-1 p-2 text-sm border-b outline-none">
+                                        <option value="Fille">Fille 🚺</option>
+                                        <option value="Garçon">Garçon 🚹</option>
+                                    </select>
+                                    <input type="number" x-model="form.age" placeholder="Âge" class="w-16 p-2 text-sm border-b outline-none" required>
                                 </div>
-                            </template>
-                        </div>
+                                <input type="text" x-model="form.university" placeholder="Université" class="w-full p-2 text-sm border-b outline-none">
+                                <input type="file" @change="uploadFile = $event.target.files[0]" class="text-[10px] mt-2">
+                            </div>
+                        </template>
 
-                        <div class="p-6 border-t dark:border-slate-800 flex gap-4">
-                            <input type="text" x-model="newMessage" @keyup.enter="sendMessage" placeholder="Écris ton message..." class="flex-1 p-4 rounded-2xl bg-slate-100 dark:bg-slate-800 outline-none dark:text-white">
-                            <button @click="sendMessage" class="w-14 h-14 bg-brand-600 text-white rounded-full flex items-center justify-center shadow-lg"><iconify-icon icon="solar:paper-plane-bold" width="24"></iconify-icon></button>
-                        </div>
-                    </div>
-                </template>
-                
-                <template x-if="!activeChat">
-                    <div class="flex-1 flex flex-col items-center justify-center text-center p-10">
-                        <iconify-icon icon="solar:chat-round-dots-bold" class="text-8xl text-brand-100 mb-6"></iconify-icon>
-                        <h2 class="text-2xl font-black dark:text-white">Sélectionne un étudiant</h2>
-                        <p class="text-slate-400">Trouve quelqu'un à proximité pour discuter !</p>
-                    </div>
-                </template>
-            </main>
-        </div>
-    </template>
+                        <input type="email" x-model="form.email" placeholder="Email" class="w-full p-2 text-sm border-b outline-none focus:border-brand-600" required>
+                        <input type="password" x-model="form.password" placeholder="Mot de passe" class="w-full p-2 text-sm border-b outline-none focus:border-brand-600" required>
+
+                        <button type="submit" class="bg-brand-600 text-white font-black py-4 rounded-full mt-4 shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all" :disabled="loading">
+                            <span x-show="!loading" x-text="mode === 'signup' ? 'REJOINDRE' : 'SE CONNECTER'"></span>
+                            <iconify-icon x-show="loading" icon="line-md:loading-twotone-loop" width="20"></iconify-icon>
+                        </button>
+
+                        <button type="button" @click="mode = (mode === 'signup' ? 'login' : 'signup')" class="text-[11px] text-slate-400 mt-4 text-center">
+                            <span x-text="mode === 'signup' ? 'Déjà un compte ?' : 'Pas inscrit ?'"></span> 
+                            <span class="text-brand-600 font-bold underline">Clique ici</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </template>
+
+        <!-- SI CONNECTÉ -->
+        <template x-if="session">
+            <div class="p-10 text-center">
+                <h1 class="text-2xl font-bold dark:text-white">Bienvenue, <span x-text="profile?.full_name || 'étudiant'"></span> !</h1>
+                <button @click="signOut" class="mt-4 text-red-500 font-bold">Se déconnecter</button>
+            </div>
+        </template>
+    </div>
+
+    <!-- Message de secours si rien ne charge -->
+    <div id="fallback" class="fixed inset-0 flex items-center justify-center bg-slate-900 text-white z-[-1]">
+        Chargement de KELVIN LOVING...
+    </div>
 
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('kelvinApp', () => ({
-                mode: 'signup', loading: false, session: null, profile: null, uploadFile: null,
-                nearbyUsers: [], activeChat: null, messages: [], newMessage: '',
+                mode: 'signup',
+                loading: false,
+                session: null,
+                profile: null,
+                uploadFile: null,
                 form: { name: '', email: '', password: '', gender: 'Fille', age: '', university: '', lat: null, lng: null },
 
                 async init() {
-                    const { data } = await supabase.auth.getSession();
+                    // Masquer le message de secours une fois Alpine chargé
+                    document.getElementById('fallback').style.display = 'none';
+
+                    const { data } = await sbClient.auth.getSession();
                     this.session = data.session;
                     if (this.session) {
                         await this.loadProfile();
-                        this.fetchNearby();
-                        this.listenToMessages();
                     }
                 },
 
@@ -171,50 +125,47 @@
                     this.loading = true;
                     try {
                         if (this.mode === 'signup') {
-                            const { data, error } = await supabase.auth.signUp({ email: this.form.email, password: this.form.password });
+                            const { data, error } = await sbClient.auth.signUp({ 
+                                email: this.form.email, 
+                                password: this.form.password 
+                            });
                             if (error) throw error;
-                            await this.getGPS();
-                            let avatarPath = this.uploadFile ? await this.uploadAvatar(data.user.id) : null;
-                            await supabase.from('profiles').update({
-                                full_name: this.form.name, gender: this.form.gender, age: this.form.age,
-                                university: this.form.university, latitude: this.form.lat, longitude: this.form.lng, avatar_url: avatarPath
+                            
+                            // Inscription réussie, mise à jour du profil
+                            const { error: updError } = await sbClient.from('profiles').update({
+                                full_name: this.form.name,
+                                gender: this.form.gender,
+                                age: this.form.age,
+                                university: this.form.university
                             }).eq('id', data.user.id);
-                            alert("Vérifie tes mails !");
+                            
+                            alert("Vérifie tes emails pour confirmer l'inscription !");
                         } else {
-                            const { error } = await supabase.auth.signInWithPassword({ email: this.form.email, password: this.form.password });
+                            const { error } = await sbClient.auth.signInWithPassword({ 
+                                email: this.form.email, 
+                                password: this.form.password 
+                            });
                             if (error) throw error;
-                            location.reload();
+                            window.location.reload();
                         }
-                    } catch (e) { alert(e.message); } finally { this.loading = false; }
-                },
-
-                async uploadAvatar(uid) {
-                    const ext = this.uploadFile.name.split('.').pop();
-                    const path = `${uid}-${Date.now()}.${ext}`;
-                    await supabase.storage.from('avatars').upload(path, this.uploadFile);
-                    return path;
+                    } catch (e) {
+                        alert(e.message);
+                    } finally {
+                        this.loading = false;
+                    }
                 },
 
                 async loadProfile() {
-                    const { data } = await supabase.from('profiles').select('*').eq('id', this.session.user.id).single();
+                    const { data } = await sbClient.from('profiles').select('*').eq('id', this.session.user.id).single();
                     this.profile = data;
                 },
 
-                async fetchNearby() {
-                    const { data } = await supabase.from('profiles').select('*').neq('id', this.session.user.id);
-                    this.nearbyUsers = data.map(u => ({
-                        ...u,
-                        distance: this.calcDist(this.profile.latitude, this.profile.longitude, u.latitude, u.longitude).toFixed(1)
-                    })).sort((a,b) => a.distance - b.distance);
-                },
-
-                calcDist(lat1, lon1, lat2, lon2) {
-                    if (!lat1 || !lat2) return 0;
-                    const R = 6371;
-                    const dLat = (lat2-lat1) * Math.PI/180;
-                    const dLon = (lon2-lon1) * Math.PI/180;
-                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)*Math.sin(dLon/2);
-                    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                },
-
-                async startChat(user) {
+                async signOut() {
+                    await sbClient.auth.signOut();
+                    window.location.reload();
+                }
+            }));
+        });
+    </script>
+</body>
+                            </html>
