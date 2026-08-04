@@ -3,33 +3,24 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kelvin Loving | Soft Edition</title>
+    <title>Kelvin Loving | WhatsApp Soft</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 
     <script>
         const S_URL = 'https://oemqhxmmoxykrqqhwnqq.supabase.co';
         const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lbXFoeG1tb3h5a3JxcWh3bnFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3OTM3MzksImV4cCI6MjEwMTM2OTczOX0.F7lVdMft0gQEyGiQYrnE5BMaTcu3nxMQa8D1CX0icbQ';
-        
-        // Initialisation immédiate
-        window.sbConn = null;
-        function initSupabase() {
-            if (typeof supabase !== 'undefined') {
-                window.sbConn = supabase.createClient(S_URL, S_KEY);
-            }
-        }
-        initSupabase();
+        const sb = supabase.createClient(S_URL, S_KEY);
 
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        love: { base: '#FFF9F9', soft: '#F8E7E7', accent: '#D988B9', text: '#4A3B3B' }
+                        love: { base: '#FFF9F9', soft: '#F8E7E7', accent: '#D988B9', wa: '#fedd02', text: '#4A3B3B' }
                     }
                 }
             }
@@ -38,110 +29,204 @@
 
     <style>
         [x-cloak] { display: none !important; }
-        body { background-color: #FFF9F9; color: #4A3B3B; font-family: 'Outfit', sans-serif; }
+        body { background-color: #FFF9F9; color: #4A3B3B; font-family: 'Outfit', sans-serif; overflow-x: hidden; }
         .tab-active { color: #D988B9; border-bottom: 3px solid #D988B9; }
-        #loading-screen { position:fixed; inset:0; background:#FFF9F9; display:flex; align-items:center; justify-content:center; z-index:9999; }
+        .wa-float { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     </style>
 </head>
-<body x-data="kelvinSoft">
+<body x-data="whatsappSoft">
 
     <!-- CHARGEMENT -->
-    <div id="loading-screen">
+    <div id="loader" style="position:fixed; inset:0; background:#FFF9F9; display:flex; align-items:center; justify-content:center; z-index:9999;">
         <iconify-icon icon="line-md:loading-twotone-loop" style="font-size:50px; color:#D988B9;"></iconify-icon>
     </div>
 
-    <div x-cloak x-show="true">
-        <!-- 1. ÉCRAN DE CONNEXION -->
+    <div x-cloak>
+        <!-- AUTH -->
         <template x-if="!session">
-            <div class="h-screen flex flex-col items-center justify-center p-8 text-center">
-                <div class="w-20 h-20 bg-love-accent rounded-[2rem] mb-6 flex items-center justify-center shadow-lg">
+            <div class="h-screen flex flex-col items-center justify-center p-8 bg-[#FFF5F5]">
+                <div class="w-20 h-20 bg-love-accent rounded-[2rem] mb-6 flex items-center justify-center shadow-lg shadow-rose-100">
                     <iconify-icon icon="solar:heart-bold" class="text-white text-4xl"></iconify-icon>
                 </div>
-                <h1 class="text-3xl font-bold text-love-text mb-2">Kelvin Loving</h1>
-                <p class="text-slate-400 text-sm mb-10 italic">L'amour au campus, version soft.</p>
+                <h1 class="text-3xl font-bold mb-8">Kelvin Loving</h1>
                 <div class="w-full max-w-sm space-y-4">
                     <template x-if="mode === 'signup'">
                         <div class="space-y-4">
-                            <input type="text" x-model="form.name" placeholder="Nom Complet" class="w-full p-4 bg-white rounded-2xl border-none shadow-sm outline-none">
-                            <input type="number" x-model="form.age" placeholder="Âge" class="w-full p-4 bg-white rounded-2xl border-none shadow-sm outline-none">
+                            <input type="text" x-model="form.name" placeholder="Nom Complet" class="w-full p-4 bg-white rounded-2xl shadow-sm border-none outline-none">
+                            <select x-model="form.university" class="w-full p-4 bg-white rounded-2xl shadow-sm outline-none">
+                                <option value="">Choisir ton université...</option>
+                                <template x-for="uni in universities" :key="uni.id">
+                                    <option :value="uni.name" x-text="uni.name"></option>
+                                </template>
+                            </select>
                         </div>
                     </template>
-                    <input type="email" x-model="form.email" placeholder="Email" class="w-full p-4 bg-white rounded-2xl shadow-sm border-none outline-none">
-                    <input type="password" x-model="form.password" placeholder="Mot de passe" class="w-full p-4 bg-white rounded-2xl shadow-sm border-none outline-none">
-                    <button @click="handleAuth" class="w-full bg-love-accent text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all">
-                        <span x-text="mode === 'signup' ? 'Créer un compte' : 'Se connecter'"></span>
-                    </button>
-                    <button @click="mode = (mode === 'signup' ? 'login' : 'signup')" class="text-xs text-love-accent font-bold mt-4 underline">
-                        <span x-text="mode === 'signup' ? 'Déjà un compte ? Connecte-toi' : 'Nouveau ? Inscris-toi'"></span>
-                    </button>
+                    <input type="email" x-model="form.email" placeholder="Email" class="w-full p-4 bg-white rounded-2xl shadow-sm border-none">
+                    <input type="password" x-model="form.password" placeholder="Mot de passe" class="w-full p-4 bg-white rounded-2xl shadow-sm border-none">
+                    <button @click="handleAuth" class="w-full bg-love-accent text-white font-bold py-4 rounded-2xl shadow-lg">Continuer</button>
+                    <button @click="mode = (mode === 'signup' ? 'login' : 'signup')" class="text-xs text-love-accent font-bold mt-4 block text-center underline" x-text="mode === 'signup' ? 'Déjà un compte ?' : 'Créer un compte'"></button>
                 </div>
             </div>
         </template>
 
-        <!-- 2. APPLICATION -->
+        <!-- APP -->
         <template x-if="session">
             <div class="h-screen flex flex-col">
-                <header class="p-4 flex justify-between items-center bg-white border-b border-love-soft">
-                    <h1 class="text-2xl font-black text-love-accent italic">Kelvin</h1>
-                    <button @click="showProfile = true" class="w-10 h-10 rounded-full border-2 border-love-accent overflow-hidden">
-                        <img :src="'https://api.dicebear.com/7.x/adventurer/svg?seed='+profile?.full_name" class="w-full h-full">
-                    </button>
+                <!-- HEADER -->
+                <header class="p-4 flex justify-between items-center bg-white sticky top-0 z-50 shadow-sm">
+                    <h1 class="text-2xl font-bold text-love-text">WhatsApp</h1>
+                    <div class="flex gap-4 text-slate-400">
+                        <iconify-icon icon="solar:magnifer-bold" width="24"></iconify-icon>
+                        <button @click="showProfile = true"><iconify-icon icon="solar:user-circle-bold" width="24"></iconify-icon></button>
+                    </div>
                 </header>
 
-                <nav class="flex bg-white border-b border-love-soft">
-                    <button @click="activeTab = 'chats'" class="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-center" :class="activeTab === 'chats' ? 'tab-active' : 'text-slate-400'">Discussions</button>
-                    <button @click="activeTab = 'actus'" class="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-center" :class="activeTab === 'actus' ? 'tab-active' : 'text-slate-400'">Actus</button>
-                    <button @click="activeTab = 'campus'" class="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-center" :class="activeTab === 'campus' ? 'tab-active' : 'text-slate-400'">Campus</button>
-                    <button @click="activeTab = 'secrets'" class="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-center" :class="activeTab === 'secrets' ? 'tab-active' : 'text-slate-400'">Secrets</button>
-                </nav>
-
+                <!-- MAIN -->
                 <main class="flex-1 overflow-y-auto pb-24">
-                    <!-- DISCUSSIONS -->
-                    <div x-show="activeTab === 'chats'" class="divide-y divide-love-soft">
+                    
+                    <!-- 1. DISCUSSIONS -->
+                    <div x-show="activeTab === 'chats'">
+                        <div class="p-3 bg-love-soft/20 flex gap-2 overflow-x-auto border-b border-love-soft">
+                             <div class="flex flex-col items-center min-w-[70px]">
+                                <div class="w-14 h-14 rounded-full border-2 border-love-accent flex items-center justify-center relative bg-white">
+                                    <iconify-icon icon="solar:user-bold" class="text-love-accent"></iconify-icon>
+                                    <div class="absolute bottom-0 right-0 bg-love-accent text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">+</div>
+                                </div>
+                                <span class="text-[9px] mt-1">Mon statut</span>
+                             </div>
+                        </div>
                         <template x-for="chat in chatList" :key="chat.id">
-                            <div @click="openChat(chat)" class="flex items-center gap-4 p-4 hover:bg-love-soft/30 cursor-pointer">
+                            <div @click="openChat(chat)" class="flex items-center gap-4 p-4 hover:bg-love-soft/30 border-b border-love-soft/20">
                                 <div class="w-14 h-14 rounded-full border-2 border-white shadow-sm overflow-hidden bg-love-soft">
                                     <img :src="'https://api.dicebear.com/7.x/adventurer/svg?seed='+chat.full_name" class="w-full h-full">
                                 </div>
                                 <div class="flex-1">
-                                    <div class="flex justify-between"><h3 class="font-bold" x-text="chat.full_name"></h3><span class="text-[9px] text-green-500 font-bold" x-show="chat.is_online">En ligne</span></div>
-                                    <p class="text-[10px] text-love-accent font-bold" x-text="chat.distance + ' KM'"></p>
+                                    <div class="flex justify-between items-center">
+                                        <h3 class="font-bold text-sm" x-text="chat.full_name"></h3>
+                                        <span class="text-[9px] font-bold" :class="chat.is_online ? 'text-green-500' : 'text-slate-400'" x-text="chat.is_online ? 'En ligne' : chat.last_seen_formatted"></span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-[10px] text-slate-400 truncate" x-text="chat.university"></p>
+                                        <span class="text-[9px] font-black text-love-accent" x-text="chat.distance + ' KM'"></span>
+                                    </div>
                                 </div>
                             </div>
                         </template>
                     </div>
 
-                    <!-- SECRETS (Anonyme) -->
-                    <div x-show="activeTab === 'secrets'" class="p-6 space-y-4">
-                        <template x-for="sec in secrets" :key="sec.id">
-                            <div class="bg-white p-6 rounded-[2rem] shadow-sm border-b-4 border-love-soft">
-                                <p class="text-sm italic" x-text="sec.content"></p>
-                                <span class="text-[9px] opacity-20 mt-4 block">🤫 Confession anonyme</span>
+                    <!-- 2. ACTUS (STATUTS) -->
+                    <div x-show="activeTab === 'actus'" class="p-4 space-y-6">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="relative cursor-pointer" @click="triggerUpload">
+                                <div class="w-14 h-14 rounded-full bg-love-soft flex items-center justify-center border-2 border-love-accent border-dashed">
+                                    <iconify-icon icon="solar:camera-bold" class="text-love-accent text-xl"></iconify-icon>
+                                </div>
+                                <div class="absolute bottom-0 right-0 bg-love-accent text-white rounded-full w-5 h-5 flex items-center justify-center font-bold text-lg">+</div>
+                            </div>
+                            <div>
+                                <p class="font-bold text-sm">Mon statut</p>
+                                <p class="text-xs text-slate-400">Appuyez pour ajouter un statut</p>
+                            </div>
+                        </div>
+                        <h2 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Mises à jour récentes</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <template x-for="story in stories" :key="story.id">
+                                <div class="h-64 rounded-3xl bg-slate-100 relative overflow-hidden shadow-md">
+                                    <img :src="story.photo_url" class="w-full h-full object-cover">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 p-3 flex flex-col justify-end">
+                                        <p class="text-white text-[10px] mb-1 font-medium" x-text="story.caption"></p>
+                                        <div class="flex items-center gap-1"><iconify-icon icon="solar:heart-bold" class="text-rose-500"></iconify-icon><span class="text-white text-[9px] font-bold" x-text="story.likes_count"></span></div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- 3. CAMPUS (Liste Universités) -->
+                    <div x-show="activeTab === 'campus'">
+                        <div class="p-4 bg-love-soft/10 text-[10px] font-black text-slate-400 uppercase">Nos Universités à Lubumbashi</div>
+                        <template x-for="uni in universities" :key="uni.id">
+                            <div class="p-4 flex items-center gap-4 hover:bg-love-soft/20 border-b border-love-soft/10">
+                                <div class="w-12 h-12 bg-love-soft rounded-2xl flex items-center justify-center text-love-accent text-xl font-black italic">L</div>
+                                <div class="flex-1">
+                                    <p class="font-bold text-sm text-love-text" x-text="uni.name"></p>
+                                    <p class="text-[9px] text-slate-400 uppercase" x-text="uni.city"></p>
+                                </div>
+                                <iconify-icon icon="solar:alt-arrow-right-bold" class="text-love-soft"></iconify-icon>
                             </div>
                         </template>
                     </div>
-                </main>
-                
-                <!-- CHAT PRIVE -->
-                <div x-show="activeChat" class="fixed inset-0 bg-love-base z-[100] flex flex-col">
-                    <header class="p-4 bg-white border-b border-love-soft flex items-center gap-4">
-                        <button @click="activeChat = null"><iconify-icon icon="solar:arrow-left-bold" width="24" class="text-love-accent"></iconify-icon></button>
-                        <p class="font-bold flex-1" x-text="activeChat?.full_name"></p>
-                    </header>
-                    <div class="flex-1 overflow-y-auto p-4 space-y-4" id="scroller">
-                        <template x-for="m in messages" :key="m.id">
-                            <div class="flex" :class="m.sender_id === session.user.id ? 'justify-end' : 'justify-start'">
-                                <div class="p-4 rounded-[2rem] text-sm max-w-[85%]" :class="m.sender_id === session.user.id ? 'bg-love-accent text-white rounded-tr-none' : 'bg-white text-love-text border rounded-tl-none'">
-                                    <p x-text="m.content"></p>
+
+                    <!-- 4. SECRETS (Confessions) -->
+                    <div x-show="activeTab === 'secrets'" class="p-6 space-y-4">
+                        <template x-for="sec in secrets" :key="sec.id">
+                            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border-b-4 border-love-soft">
+                                <p class="text-sm italic text-love-text leading-relaxed" x-text="sec.content"></p>
+                                <div class="mt-4 flex items-center gap-2 opacity-30 text-[9px] font-bold uppercase tracking-tighter">
+                                    <iconify-icon icon="solar:mask-happly-bold"></iconify-icon>
+                                    <span>Secret Anonyme</span>
                                 </div>
                             </div>
                         </template>
                     </div>
-                    <div class="p-4 bg-white flex gap-2">
-                        <input type="text" x-model="newMessage" @keyup.enter="sendMessage" placeholder="Message..." class="flex-1 bg-love-base p-4 rounded-full outline-none text-sm border-none">
-                        <button @click="sendMessage" class="w-14 h-14 bg-love-accent text-white rounded-full flex items-center justify-center">
-                            <iconify-icon icon="solar:paper-plane-bold" width="22"></iconify-icon>
-                        </button>
+                </main>
+
+                <!-- FLOATING BUTTONS -->
+                <div class="fixed bottom-24 right-6 flex flex-col gap-3">
+                    <template x-if="activeTab === 'actus'">
+                        <button class="w-14 h-14 bg-love-accent text-white rounded-2xl wa-float flex items-center justify-center transition-transform active:scale-90"><iconify-icon icon="solar:camera-bold" width="28"></iconify-icon></button>
+                    </template>
+                    <template x-if="activeTab === 'secrets'">
+                        <button @click="showSecretModal = true" class="w-14 h-14 bg-love-accent text-white rounded-2xl wa-float flex items-center justify-center transition-transform active:scale-90"><iconify-icon icon="solar:add-circle-bold" width="28"></iconify-icon></button>
+                    </template>
+                </div>
+
+                <!-- BOTTOM NAV (WhatsApp Style) -->
+                <nav class="fixed bottom-0 w-full bg-white border-t border-love-soft grid grid-cols-4 pb-2 z-[60]">
+                    <button @click="activeTab = 'chats'" class="flex flex-col items-center py-3 gap-1" :class="activeTab === 'chats' ? 'text-love-accent' : 'text-slate-400'">
+                        <div class="relative">
+                            <iconify-icon icon="solar:chat-round-dots-bold" width="24"></iconify-icon>
+                            <span class="absolute -top-1 -right-1 bg-love-wa text-wa-dark text-[8px] font-bold px-1 rounded-full">2</span>
+                        </div>
+                        <span class="text-[10px] font-bold">Discussions</span>
+                    </button>
+                    <button @click="activeTab = 'actus'" class="flex-1 flex flex-col items-center py-3 gap-1" :class="activeTab === 'actus' ? 'text-love-accent' : 'text-slate-400'">
+                        <iconify-icon icon="solar:star-circle-bold" width="24"></iconify-icon>
+                        <span class="text-[10px] font-bold">Actus</span>
+                    </button>
+                    <button @click="activeTab = 'campus'" class="flex-1 flex flex-col items-center py-3 gap-1" :class="activeTab === 'campus' ? 'text-love-accent' : 'text-slate-400'">
+                        <iconify-icon icon="solar:users-group-rounded-bold" width="24"></iconify-icon>
+                        <span class="text-[10px] font-bold">Campus</span>
+                    </button>
+                    <button @click="activeTab = 'secrets'" class="flex-1 flex flex-col items-center py-3 gap-1" :class="activeTab === 'secrets' ? 'text-love-accent' : 'text-slate-400'">
+                        <iconify-icon icon="solar:mask-happly-bold" width="24"></iconify-icon>
+                        <span class="text-[10px] font-bold">Secrets</span>
+                    </button>
+                </nav>
+
+                <!-- MODAL CHAT PRIVÉ -->
+                <div x-show="activeChat" x-cloak class="fixed inset-0 bg-love-base z-[100] flex flex-col animate-in slide-in-from-right duration-300">
+                    <header class="p-4 bg-white border-b border-love-soft flex items-center gap-4">
+                        <button @click="activeChat = null"><iconify-icon icon="solar:arrow-left-bold" width="24" class="text-love-accent"></iconify-icon></button>
+                        <div class="w-10 h-10 rounded-full border-2 border-love-accent overflow-hidden"><img :src="'https://api.dicebear.com/7.x/adventurer/svg?seed='+activeChat?.full_name" class="w-full h-full"></div>
+                        <div class="flex-1 min-w-0"><p class="font-bold text-sm truncate" x-text="activeChat?.full_name"></p><p class="text-[9px] font-bold" :class="activeChat?.is_online ? 'text-green-500' : 'text-slate-400'" x-text="activeChat?.is_online ? 'En ligne' : activeChat?.last_seen_formatted"></p></div>
+                    </header>
+                    <div class="flex-1 overflow-y-auto p-4 space-y-4" id="chat-scroller">
+                        <template x-for="m in messages" :key="m.id">
+                            <div class="flex" :class="m.sender_id === session.user.id ? 'justify-end' : 'justify-start'">
+                                <div class="p-4 rounded-[2rem] text-sm max-w-[85%] shadow-sm" :class="m.sender_id === session.user.id ? 'bg-love-accent text-white rounded-tr-none' : 'bg-white text-love-text border rounded-tl-none'">
+                                    <p x-text="m.content"></p>
+                                    <span class="text-[8px] block mt-1 opacity-50 text-right" x-text="new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="p-4 bg-white flex gap-3 items-center">
+                        <div class="flex-1 bg-love-base rounded-full px-5 py-3 flex items-center gap-3">
+                            <iconify-icon icon="solar:smile-circle-bold" class="text-slate-300" width="22"></iconify-icon>
+                            <input type="text" x-model="newMessage" @keyup.enter="sendMessage" placeholder="Message..." class="bg-transparent flex-1 outline-none text-sm">
+                        </div>
+                        <button @click="sendMessage" class="w-12 h-12 bg-love-accent text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all"><iconify-icon icon="solar:paper-plane-bold" width="22"></iconify-icon></button>
                     </div>
                 </div>
 
@@ -151,97 +236,60 @@
 
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.data('kelvinSoft', () => ({
-                session: null, activeTab: 'chats', activeChat: null, showProfile: false,
+            Alpine.data('whatsappSoft', () => ({
+                session: null, activeTab: 'chats', activeChat: null,
                 mode: 'login', profile: null, chatList: [], universities: [],
                 stories: [], secrets: [], messages: [], newMessage: '',
-                form: { name: '', email: '', password: '', phone: '', age: '' },
+                form: { name: '', email: '', password: '', university: '', phone: '' },
 
                 async init() {
-                    // Supprimer le loader dès qu'Alpine démarre
-                    document.getElementById('loading-screen').style.display = 'none';
-
-                    if (!window.sbConn) initSupabase();
-                    
-                    const { data } = await window.sbConn.auth.getSession();
+                    const { data } = await sb.auth.getSession();
                     this.session = data.session;
+                    document.getElementById('loader').style.display = 'none';
+
+                    this.fetchUni();
+                    this.fetchStories();
+                    this.fetchSecrets();
 
                     if (this.session) {
                         await this.loadProfile();
-                        this.fetchData();
+                        this.updateStatus();
+                        this.fetchChats();
                         this.listen();
+                        setInterval(() => this.updateStatus(), 60000);
                     }
                 },
 
                 async handleAuth() {
                     try {
                         if (this.mode === 'signup') {
-                            const { data, error } = await window.sbConn.auth.signUp({ email: this.form.email, password: this.form.password });
+                            const { data, error } = await sb.auth.signUp({ email: this.form.email, password: this.form.password });
                             if (error) throw error;
-                            await window.sbConn.from('profiles').update({ full_name: this.form.name, age: this.form.age }).eq('id', data.user.id);
-                            alert("Vérifie ton mail !");
+                            await sb.from('profiles').update({ full_name: this.form.name, university: this.form.university, phone: this.form.phone }).eq('id', data.user.id);
+                            alert("Vérifie tes mails !");
                         } else {
-                            const { error } = await window.sbConn.auth.signInWithPassword({ email: this.form.email, password: this.form.password });
-                            if (error) throw error;
+                            await sb.auth.signInWithPassword({ email: this.form.email, password: this.form.password });
                             location.reload();
                         }
                     } catch (e) { alert(e.message); }
                 },
 
                 async loadProfile() {
-                    const { data } = await window.sbConn.from('profiles').select('*').eq('id', this.session.user.id).single();
+                    const { data } = await sb.from('profiles').select('*').eq('id', this.session.user.id).single();
                     this.profile = data;
                 },
 
-                async fetchData() {
-                    // On charge un par un pour éviter que tout bloque si une table manque
-                    const resChat = await window.sbConn.from('profiles').select('*').neq('id', this.session.user.id);
-                    if (resChat.data) {
-                        this.chatList = resChat.data.map(u => ({
-                            ...u,
-                            distance: this.calcDist(this.profile?.latitude, this.profile?.longitude, u.latitude, u.longitude).toFixed(1),
-                            is_online: (new Date() - new Date(u.last_seen)) < 300000
-                        }));
-                    }
-                    
-                    const resSec = await window.sbConn.from('secrets').select('*').limit(20);
-                    if (resSec.data) this.secrets = resSec.data;
+                async fetchUni() {
+                    const { data } = await sb.from('universities').select('*').order('name');
+                    this.universities = data || [];
                 },
 
-                calcDist(lat1, lon1, lat2, lon2) {
-                    if (!lat1 || !lat2) return 0;
-                    const R = 6371;
-                    const dLat = (lat2-lat1) * Math.PI/180;
-                    const dLon = (lon2-lon1) * Math.PI/180;
-                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)*Math.sin(dLon/2);
-                    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                async fetchStories() {
+                    const { data } = await sb.from('stories').select('*').order('created_at', { ascending: false });
+                    this.stories = data || [];
                 },
 
-                async openChat(user) {
-                    this.activeChat = user;
-                    const { data } = await window.sbConn.from('messages')
-                        .select('*')
-                        .or(`and(sender_id.eq.${this.session.user.id},receiver_id.eq.${user.id}),and(sender_id.eq.${user.id},receiver_id.eq.${this.session.user.id})`)
-                        .order('created_at');
-                    this.messages = data || [];
-                },
-
-                async sendMessage() {
-                    if (!this.newMessage.trim()) return;
-                    await window.sbConn.from('messages').insert({ sender_id: this.session.user.id, receiver_id: this.activeChat.id, content: this.newMessage });
-                    this.newMessage = '';
-                    this.openChat(this.activeChat);
-                },
-
-                listen() {
-                    window.sbConn.channel('room1').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
-                        if(this.activeChat) this.openChat(this.activeChat);
-                    }).subscribe();
-                },
-
-                async signOut() { await window.sbConn.auth.signOut(); location.reload(); }
-            }));
-        });
-    </script>
-</body>
-</html>
+                async fetchSecrets() {
+                    const { data } = await sb.from('secrets').select('*').order('created_at', { ascending: false });
+                    this.secrets = data || [];
+                }
