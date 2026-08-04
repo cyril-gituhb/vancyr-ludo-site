@@ -14,8 +14,6 @@
     <script>
         const S_URL = 'https://oemqhxmmoxykrqqhwnqq.supabase.co';
         const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lbXFoeG1tb3h5a3JxcWh3bnFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3OTM3MzksImV4cCI6MjEwMTM2OTczOX0.F7lVdMft0gQEyGiQYrnE5BMaTcu3nxMQa8D1CX0icbQ';
-        
-        // On initialise Supabase immédiatement
         const sb = supabase.createClient(S_URL, S_KEY);
 
         tailwind.config = {
@@ -30,7 +28,7 @@
     </script>
 
     <style>
-        /* On enlève x-cloak pour forcer l'affichage quoi qu'il arrive */
+        [x-cloak] { display: none !important; }
         body { background-color: #FFF9F9; color: #4A3B3B; font-family: 'Outfit', sans-serif; margin: 0; }
         .tab-active { color: #D988B9; border-bottom: 3px solid #D988B9; }
         #loader { position: fixed; inset: 0; background: #FFF9F9; display: flex; align-items: center; justify-content: center; z-index: 9999; }
@@ -38,13 +36,12 @@
 </head>
 <body x-data="whatsappSoft">
 
-    <!-- CHARGEMENT (Disparaît très vite) -->
     <div id="loader" x-show="loadingScreen">
         <iconify-icon icon="line-md:loading-twotone-loop" style="font-size:50px; color:#D988B9;"></iconify-icon>
     </div>
 
-    <div>
-        <!-- 1. ÉCRAN AUTH -->
+    <div x-cloak x-show="!loadingScreen">
+        <!-- 1. AUTH -->
         <div x-show="!session" class="h-screen flex flex-col items-center justify-center p-8 text-center">
             <div class="w-20 h-20 bg-love-accent rounded-[2rem] mb-6 flex items-center justify-center shadow-lg">
                 <iconify-icon icon="solar:heart-bold" class="text-white text-4xl"></iconify-icon>
@@ -53,9 +50,9 @@
             <div class="w-full max-w-sm space-y-4">
                 <template x-if="mode === 'signup'">
                     <div class="space-y-4">
-                        <input type="text" x-model="form.name" placeholder="Nom Complet" class="w-full p-4 bg-white rounded-2xl shadow-sm border-none outline-none">
+                        <input type="text" x-model="form.name" placeholder="Nom Complet" class="w-full p-4 bg-white rounded-2xl shadow-sm outline-none">
                         <select x-model="form.university" class="w-full p-4 bg-white rounded-2xl shadow-sm outline-none">
-                            <option value="">Université...</option>
+                            <option value="">Choisir ton université...</option>
                             <template x-for="u in universities" :key="u.id"><option :value="u.name" x-text="u.name"></option></template>
                         </select>
                     </div>
@@ -67,9 +64,9 @@
             </div>
         </div>
 
-        <!-- 2. APPLICATION -->
+        <!-- 2. APP -->
         <div x-show="session" class="h-screen flex flex-col">
-            <header class="p-4 flex justify-between items-center bg-white shadow-sm">
+            <header class="p-4 flex justify-between items-center bg-white shadow-sm sticky top-0 z-50">
                 <h1 class="text-2xl font-bold text-love-text">WhatsApp</h1>
                 <div class="flex gap-4 text-slate-400">
                     <iconify-icon icon="solar:magnifer-bold" width="24"></iconify-icon>
@@ -77,11 +74,11 @@
                 </div>
             </header>
 
-            <nav class="flex bg-white border-b border-love-soft sticky top-0 z-40">
-                <button @click="activeTab = 'chats'" class="flex-1 py-4 text-[10px] font-bold uppercase" :class="activeTab === 'chats' ? 'tab-active' : 'text-slate-400'">Discussions</button>
-                <button @click="activeTab = 'actus'" class="flex-1 py-4 text-[10px] font-bold uppercase" :class="activeTab === 'actus' ? 'tab-active' : 'text-slate-400'">Actus</button>
-                <button @click="activeTab = 'campus'" class="flex-1 py-4 text-[10px] font-bold uppercase" :class="activeTab === 'campus' ? 'tab-active' : 'text-slate-400'">Campus</button>
-                <button @click="activeTab = 'secrets'" class="flex-1 py-4 text-[10px] font-bold uppercase" :class="activeTab === 'secrets' ? 'tab-active' : 'text-slate-400'">Secrets</button>
+            <nav class="flex bg-white border-b border-love-soft sticky top-[65px] z-40">
+                <button @click="activeTab = 'chats'; selectedUni = null" class="flex-1 py-4 text-[10px] font-bold uppercase" :class="activeTab === 'chats' ? 'tab-active' : 'text-slate-400'">Discussions</button>
+                <button @click="activeTab = 'actus'; selectedUni = null" class="flex-1 py-4 text-[10px] font-bold uppercase" :class="activeTab === 'actus' ? 'tab-active' : 'text-slate-400'">Actus</button>
+                <button @click="activeTab = 'campus'; selectedUni = null" class="flex-1 py-4 text-[10px] font-bold uppercase" :class="activeTab === 'campus' ? 'tab-active' : 'text-slate-400'">Campus</button>
+                <button @click="activeTab = 'secrets'; selectedUni = null" class="flex-1 py-4 text-[10px] font-bold uppercase" :class="activeTab === 'secrets' ? 'tab-active' : 'text-slate-400'">Secrets</button>
             </nav>
 
             <main class="flex-1 overflow-y-auto pb-24">
@@ -93,8 +90,8 @@
                                 <img :src="'https://api.dicebear.com/7.x/adventurer/svg?seed='+chat.full_name" class="w-full h-full">
                             </div>
                             <div class="flex-1">
-                                <div class="flex justify-between items-center"><h3 class="font-bold text-sm" x-text="chat.full_name"></h3><span class="text-[9px] text-slate-400" x-text="chat.is_online ? 'En ligne' : 'Vu récemment'"></span></div>
-                                <p class="text-[10px] text-love-accent font-bold" x-text="chat.distance + ' KM'"></p>
+                                <div class="flex justify-between items-center"><h3 class="font-bold text-sm" x-text="chat.full_name"></h3></div>
+                                <p class="text-[10px] text-love-accent font-bold" x-text="chat.university"></p>
                             </div>
                         </div>
                     </template>
@@ -103,12 +100,49 @@
                 <!-- ACTUS -->
                 <div x-show="activeTab === 'actus'" class="p-4">
                     <div class="flex items-center gap-4 mb-6">
-                        <div class="relative w-14 h-14 bg-love-soft rounded-full flex items-center justify-center border-2 border-love-accent border-dashed">
+                        <label class="relative w-14 h-14 bg-love-soft rounded-full flex items-center justify-center border-2 border-love-accent border-dashed cursor-pointer">
+                            <input type="file" @change="uploadStatus" class="hidden" accept="image/*">
                             <iconify-icon icon="solar:camera-bold" class="text-love-accent text-xl"></iconify-icon>
                             <div class="absolute bottom-0 right-0 bg-love-accent text-white rounded-full w-5 h-5 flex items-center justify-center font-bold">+</div>
-                        </div>
+                        </label>
                         <div><p class="font-bold text-sm">Mon statut</p><p class="text-xs text-slate-400">Ajouter une actu photo</p></div>
                     </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <template x-for="story in stories" :key="story.id">
+                            <div class="h-64 rounded-3xl relative overflow-hidden shadow-md">
+                                <img :src="story.photo_url" class="w-full h-full object-cover">
+                                <div class="absolute bottom-0 p-3 bg-black/40 w-full"><p class="text-white text-[10px]" x-text="story.caption"></p></div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- CAMPUS -->
+                <div x-show="activeTab === 'campus'">
+                    <template x-if="!selectedUni">
+                        <div>
+                            <template x-for="uni in universities" :key="uni.id">
+                                <div @click="viewUni(uni)" class="p-4 border-b border-love-soft/10 flex items-center gap-4 hover:bg-love-soft/20 cursor-pointer transition-colors">
+                                    <div class="w-10 h-10 bg-love-soft rounded-xl flex items-center justify-center text-love-accent font-black">L</div>
+                                    <span class="text-sm font-bold" x-text="uni.name"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template x-if="selectedUni">
+                        <div class="animate-in slide-in-from-right duration-300">
+                            <div class="p-4 bg-love-soft/40 flex items-center gap-3">
+                                <button @click="selectedUni = null"><iconify-icon icon="solar:arrow-left-bold" width="24" class="text-love-accent"></iconify-icon></button>
+                                <span class="font-bold text-xs truncate" x-text="selectedUni.name"></span>
+                            </div>
+                            <template x-for="stu in studentsOfUni" :key="stu.id">
+                                <div @click="openChat(stu)" class="p-4 border-b border-love-soft/10 flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-love-soft rounded-full overflow-hidden border"><img :src="'https://api.dicebear.com/7.x/adventurer/svg?seed='+stu.full_name" class="w-full h-full"></div>
+                                    <span class="font-bold text-sm" x-text="stu.full_name"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
                 </div>
 
                 <!-- SECRETS -->
@@ -120,39 +154,38 @@
                         </div>
                     </template>
                 </div>
-
-                <!-- CAMPUS -->
-                <div x-show="activeTab === 'campus'">
-                    <template x-for="uni in universities" :key="uni.id">
-                        <div class="p-4 border-b border-love-soft/10 flex items-center gap-4">
-                            <div class="w-10 h-10 bg-love-soft rounded-xl flex items-center justify-center text-love-accent font-black">L</div>
-                            <span class="text-sm font-bold" x-text="uni.name"></span>
-                        </div>
-                    </template>
-                </div>
             </main>
 
-            <!-- BOUTONS FLOTTANTS WHATSAPP -->
-            <div class="fixed bottom-24 right-6 flex flex-col gap-3">
-                <template x-if="activeTab === 'actus'"><button class="w-14 h-14 bg-love-accent text-white rounded-2xl shadow-xl flex items-center justify-center"><iconify-icon icon="solar:camera-bold" width="28"></iconify-icon></button></template>
-                <template x-if="activeTab === 'secrets'"><button class="w-14 h-14 bg-love-accent text-white rounded-2xl shadow-xl flex items-center justify-center"><iconify-icon icon="solar:pen-bold" width="28"></iconify-icon></button></template>
+            <!-- BOUTONS FLOTTANTS -->
+            <div class="fixed bottom-24 right-6 flex flex-col gap-3 z-50">
+                <template x-if="activeTab === 'actus'">
+                    <label class="w-14 h-14 bg-love-accent text-white rounded-2xl shadow-xl flex items-center justify-center cursor-pointer">
+                        <input type="file" @change="uploadStatus" class="hidden" accept="image/*">
+                        <iconify-icon icon="solar:camera-bold" width="28"></iconify-icon>
+                    </label>
+                </template>
+                <template x-if="activeTab === 'secrets'">
+                    <button @click="openSecretPrompt" class="w-14 h-14 bg-love-accent text-white rounded-2xl shadow-xl flex items-center justify-center">
+                        <iconify-icon icon="solar:pen-bold" width="28"></iconify-icon>
+                    </button>
+                </template>
             </div>
 
             <!-- BARRE BAS -->
-            <nav class="fixed bottom-0 w-full bg-white border-t border-love-soft grid grid-cols-4 pb-2">
+            <nav class="fixed bottom-0 w-full bg-white border-t border-love-soft grid grid-cols-4 pb-2 z-[60]">
                 <button @click="activeTab = 'chats'" class="flex flex-col items-center py-3" :class="activeTab === 'chats' ? 'text-love-accent' : 'text-slate-400'"><iconify-icon icon="solar:chat-round-dots-bold" width="24"></iconify-icon><span class="text-[9px] font-bold">Discussions</span></button>
                 <button @click="activeTab = 'actus'" class="flex flex-col items-center py-3" :class="activeTab === 'actus' ? 'text-love-accent' : 'text-slate-400'"><iconify-icon icon="solar:star-circle-bold" width="24"></iconify-icon><span class="text-[9px] font-bold">Actus</span></button>
                 <button @click="activeTab = 'campus'" class="flex flex-col items-center py-3" :class="activeTab === 'campus' ? 'text-love-accent' : 'text-slate-400'"><iconify-icon icon="solar:users-group-rounded-bold" width="24"></iconify-icon><span class="text-[9px] font-bold">Campus</span></button>
-                <button @click="activeTab = 'secrets'" class="flex-1 flex flex-col items-center py-3" :class="activeTab === 'secrets' ? 'text-love-accent' : 'text-slate-400'"><iconify-icon icon="solar:mask-happly-bold" width="24"></iconify-icon><span class="text-[9px] font-bold">Secrets</span></button>
+                <button @click="activeTab = 'secrets'" class="flex flex-col items-center py-3" :class="activeTab === 'secrets' ? 'text-love-accent' : 'text-slate-400'"><iconify-icon icon="solar:mask-happly-bold" width="24"></iconify-icon><span class="text-[9px] font-bold">Secrets</span></button>
             </nav>
 
             <!-- CHAT PRIVÉ -->
-            <div x-show="activeChat" class="fixed inset-0 bg-love-base z-[100] flex flex-col">
+            <div x-show="activeChat" x-cloak class="fixed inset-0 bg-love-base z-[100] flex flex-col">
                 <header class="p-4 bg-white border-b border-love-soft flex items-center gap-4">
                     <button @click="activeChat = null"><iconify-icon icon="solar:arrow-left-bold" width="24" class="text-love-accent"></iconify-icon></button>
                     <p class="font-bold text-sm" x-text="activeChat?.full_name"></p>
                 </header>
-                <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                <div class="flex-1 overflow-y-auto p-4 space-y-4" id="scroller">
                     <template x-for="m in messages" :key="m.id">
                         <div class="flex" :class="m.sender_id === session.user.id ? 'justify-end' : 'justify-start'">
                             <div class="p-4 rounded-[2rem] text-sm max-w-[85%] shadow-sm" :class="m.sender_id === session.user.id ? 'bg-love-accent text-white rounded-tr-none' : 'bg-white text-love-text border rounded-tl-none'">
@@ -163,7 +196,7 @@
                 </div>
                 <div class="p-4 bg-white flex gap-2">
                     <input type="text" x-model="newMessage" @keyup.enter="sendMessage" placeholder="Message..." class="flex-1 bg-love-soft p-4 rounded-full outline-none text-sm border-none shadow-inner">
-                    <button @click="sendMessage" class="w-14 h-14 bg-love-accent text-white rounded-full flex items-center justify-center shadow-lg"><iconify-icon icon="solar:paper-plane-bold" width="22"></iconify-icon></button>
+                    <button @click="sendMessage" class="w-14 h-14 bg-love-accent text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all"><iconify-icon icon="solar:paper-plane-bold" width="22"></iconify-icon></button>
                 </div>
             </div>
         </div>
@@ -175,14 +208,13 @@
                 session: null, activeTab: 'chats', activeChat: null, mode: 'login',
                 profile: null, chatList: [], universities: [], secrets: [], messages: [], 
                 loadingScreen: true, newMessage: '',
+                selectedUni: null, studentsOfUni: [],
                 form: { name: '', email: '', password: '', university: '' },
 
                 async init() {
                     const { data } = await sb.auth.getSession();
                     this.session = data.session;
-                    this.loadingScreen = false; // On cache le loader tout de suite
-
-                    // On charge les données après l'affichage pour ne pas bloquer
+                    this.loadingScreen = false;
                     this.loadData();
                     if (this.session) this.loadProfile();
                 },
@@ -193,7 +225,7 @@
                             const { data, error } = await sb.auth.signUp({ email: this.form.email, password: this.form.password });
                             if (error) throw error;
                             await sb.from('profiles').update({ full_name: this.form.name, university: this.form.university }).eq('id', data.user.id);
-                            alert("Compte créé !");
+                            alert("Vérifie ton mail !");
                         } else {
                             await sb.auth.signInWithPassword({ email: this.form.email, password: this.form.password });
                             location.reload();
@@ -202,17 +234,40 @@
                 },
 
                 async loadData() {
-                    // Chargement indépendant pour éviter les blocages
                     sb.from('universities').select('*').then(({data}) => this.universities = data || []);
-                    sb.from('profiles').select('*').limit(20).then(({data}) => {
-                        if(data) this.chatList = data.map(u => ({ ...u, distance: (Math.random()*5).toFixed(1) }));
-                    });
-                    sb.from('secrets').select('*').limit(10).then(({data}) => this.secrets = data || []);
+                    sb.from('profiles').select('*').limit(20).then(({data}) => this.chatList = data || []);
+                    sb.from('stories').select('*').order('created_at', {ascending: false}).then(({data}) => this.stories = data || []);
+                    sb.from('secrets').select('*').order('created_at', {ascending: false}).then(({data}) => this.secrets = data || []);
                 },
 
-                async loadProfile() {
-                    const { data } = await sb.from('profiles').select('*').eq('id', this.session.user.id).single();
-                    this.profile = data;
+                async viewUni(uni) {
+                    this.selectedUni = uni;
+                    const { data } = await sb.from('profiles').select('*').eq('university', uni.name);
+                    this.studentsOfUni = data || [];
+                },
+
+                async openSecretPrompt() {
+                    const content = prompt("Écris ton secret (Anonyme) :");
+                    if (content && content.trim()) {
+                        const { error } = await sb.from('secrets').insert({ content });
+                        if (!error) location.reload();
+                    }
+                },
+
+                async uploadStatus(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Date.now()}.${fileExt}`;
+                    
+                    const { data, error: upError } = await sb.storage.from('avatars').upload(fileName, file);
+                    if (upError) return alert("Erreur upload");
+                    
+                    const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(fileName);
+                    const caption = prompt("Ajoute une légende :");
+                    
+                    await sb.from('stories').insert({ user_id: this.session.user.id, photo_url: publicUrl, caption });
+                    location.reload();
                 },
 
                 async openChat(user) {
@@ -222,6 +277,11 @@
                         .or(`and(sender_id.eq.${this.session.user.id},receiver_id.eq.${user.id}),and(sender_id.eq.${user.id},receiver_id.eq.${this.session.user.id})`)
                         .order('created_at');
                     this.messages = data || [];
+                },
+
+                async loadProfile() {
+                    const { data } = await sb.from('profiles').select('*').eq('id', this.session.user.id).single();
+                    this.profile = data;
                 },
 
                 async sendMessage() {
@@ -236,4 +296,4 @@
         });
     </script>
 </body>
-                                </html>
+</html>
