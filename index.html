@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Campus Lushi | Soft Edition</title>
+    <title>Campus Lushi | WhatsApp Soft</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
@@ -19,7 +19,9 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { love: { base: '#FFF9F9', soft: '#F8E7E7', accent: '#D988B9', text: '#4A3B3B' } }
+                    colors: {
+                        love: { base: '#FFF9F9', soft: '#F8E7E7', accent: '#D988B9', text: '#4A3B3B' }
+                    }
                 }
             }
         }
@@ -29,9 +31,8 @@
         body { background-color: #FFF9F9; color: #4A3B3B; font-family: 'Outfit', sans-serif; margin: 0; -webkit-tap-highlight-color: transparent; }
         .tab-active { color: #D988B9; border-bottom: 3px solid #D988B9; }
         #loader { position: fixed; inset: 0; background: #FFF9F9; display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .unread-badge { background-color: #D988B9; color: white; min-width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; padding: 2px; }
         [x-cloak] { display: none !important; }
-        .guide-step { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body x-data="kelvinApp">
@@ -40,71 +41,34 @@
         <iconify-icon icon="line-md:loading-twotone-loop" style="font-size:50px; color:#D988B9;"></iconify-icon>
     </div>
 
-    <!-- GUIDE UTILISATEUR (Modal de bienvenue) -->
-    <div x-show="showGuide" x-cloak class="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
-        <div class="bg-white w-full max-w-sm rounded-[2.5rem] p-8 text-center relative shadow-2xl">
-            <div class="w-20 h-20 bg-love-soft rounded-full mx-auto mb-4 flex items-center justify-center text-love-accent text-4xl">
-                <iconify-icon icon="solar:magic-stick-3-bold"></iconify-icon>
-            </div>
-            <h2 class="text-xl font-extrabold mb-2">Bienvenue sur Campus Lushi !</h2>
-            <p class="text-slate-400 text-sm mb-6">Laisse-moi te montrer comment fonctionne ton nouveau réseau.</p>
-            
-            <div class="space-y-4 text-left mb-8">
-                <div class="flex items-center gap-3">
-                    <iconify-icon icon="solar:users-group-rounded-bold" class="text-love-accent"></iconify-icon>
-                    <p class="text-xs font-bold">Campus: Clique sur une université pour voir tes futurs amis.</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <iconify-icon icon="solar:mask-happly-bold" class="text-love-accent"></iconify-icon>
-                    <p class="text-xs font-bold">Secrets: Partage tes confessions sans qu'on sache qui tu es.</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <iconify-icon icon="solar:map-point-bold" class="text-love-accent"></iconify-icon>
-                    <p class="text-xs font-bold">Distance: Découvre qui est à moins d'un km de toi !</p>
-                </div>
-            </div>
-
-            <button @click="closeGuide" class="w-full py-4 bg-love-accent text-white font-bold rounded-2xl shadow-lg">C'est parti !</button>
-        </div>
-    </div>
-
     <div x-cloak x-show="!loadingScreen">
-        
-        <!-- 1. AUTH (Formulaire complet) -->
+        <!-- 1. AUTH -->
         <div x-show="!session" class="h-screen flex flex-col items-center justify-center p-8 text-center bg-[#FFF5F5]">
             <div class="w-20 h-20 bg-love-accent rounded-[2rem] mb-6 flex items-center justify-center shadow-lg">
                 <iconify-icon icon="solar:heart-bold" class="text-white text-4xl"></iconify-icon>
             </div>
-            <h1 class="text-3xl font-bold mb-8">Kelvin Loving</h1>
+            <h1 class="text-3xl font-bold mb-8 italic">Kelvin Loving</h1>
             <div class="w-full max-w-sm space-y-4">
                 <template x-if="mode === 'signup'">
-                    <div class="space-y-3 animate-in fade-in">
+                    <div class="space-y-4">
                         <input type="text" x-model="form.name" placeholder="Prénom & Nom" class="w-full p-4 bg-white rounded-2xl shadow-sm outline-none">
-                        <div class="flex gap-2">
-                            <select x-model="form.gender" class="flex-1 p-4 bg-white rounded-2xl shadow-sm text-sm outline-none">
-                                <option value="">Sexe...</option>
-                                <option value="Fille">Fille 🚺</option>
-                                <option value="Garçon">Garçon 🚹</option>
-                            </select>
-                            <input type="number" x-model="form.age" placeholder="Âge" class="w-20 p-4 bg-white rounded-2xl shadow-sm outline-none">
-                        </div>
                         <select x-model="form.university" class="w-full p-4 bg-white rounded-2xl shadow-sm outline-none text-sm">
                             <option value="">Ton établissement...</option>
                             <template x-for="u in universities" :key="u.id"><option :value="u.name" x-text="u.name"></option></template>
                         </select>
                     </div>
                 </template>
-                <input type="email" x-model="form.email" placeholder="Email" class="w-full p-4 bg-white rounded-2xl shadow-sm border-none outline-none">
-                <input type="password" x-model="form.password" placeholder="Mot de passe" class="w-full p-4 bg-white rounded-2xl shadow-sm border-none outline-none">
+                <input type="email" x-model="form.email" placeholder="Email" class="w-full p-4 bg-white rounded-2xl shadow-sm outline-none">
+                <input type="password" x-model="form.password" placeholder="Mot de passe" class="w-full p-4 bg-white rounded-2xl shadow-sm outline-none">
                 <button @click="handleAuth" class="w-full bg-love-accent text-white font-bold py-4 rounded-2xl shadow-lg">Continuer</button>
-                <button @click="mode = (mode === 'signup' ? 'login' : 'signup')" class="text-xs text-love-accent font-bold mt-4 underline" x-text="mode === 'signup' ? 'J\'ai déjà un compte' : 'Nouveau ? Crée un compte'"></button>
+                <button @click="mode = (mode === 'signup' ? 'login' : 'signup')" class="text-xs text-love-accent font-bold mt-4 underline" x-text="mode === 'signup' ? 'J\'ai déjà un compte' : 'Créer un compte'"></button>
             </div>
         </div>
 
-        <!-- 2. APPLICATION (Interface WhatsApp) -->
+        <!-- 2. APP PRINCIPALE -->
         <div x-show="session" class="h-screen flex flex-col overflow-hidden">
-            <header class="p-4 flex justify-between items-center bg-white shadow-sm sticky top-0 z-50">
-                <h1 class="text-2xl font-bold text-love-accent italic">WhatsApp</h1>
+            <header class="p-4 flex justify-between items-center bg-white sticky top-0 z-50">
+                <h1 class="text-2xl font-black text-love-accent italic">WhatsApp</h1>
                 <div class="flex gap-4 items-center">
                     <iconify-icon icon="solar:magnifer-bold" width="24" class="text-slate-400"></iconify-icon>
                     <button @click="activeTab = 'settings'" class="w-10 h-10 rounded-full border-2 border-love-accent overflow-hidden">
@@ -121,14 +85,148 @@
             </nav>
 
             <main class="flex-1 overflow-y-auto pb-24">
-                <!-- LE CONTENU DES ONGLETS (ACTUS, CHATS, CAMPUS, SECRETS, SETTINGS) -->
-                <!-- Je n'ai pas modifié ton code ici pour que ça reste "comme avant" -->
-            </main>
-            
-            <!-- BARRE BAS ET MODALS CHATS RESTENT IDENTIQUES... -->
-        </div>
+                
+                <!-- DISCUSSIONS -->
+                <div x-show="activeTab === 'chats'">
+                    <template x-for="chat in chatList" :key="chat.id">
+                        <div @click="openChat(chat)" class="flex items-center gap-4 p-4 border-b border-love-soft/20 cursor-pointer hover:bg-love-soft/10">
+                            <div class="w-14 h-14 rounded-full border-2 border-white bg-love-soft overflow-hidden">
+                                <img :src="chat.avatar_url || 'https://api.dicebear.com/7.x/adventurer/svg?seed='+chat.full_name" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-center"><h3 class="font-bold text-sm" x-text="chat.full_name"></h3><span class="text-[9px] text-love-accent font-bold" x-text="chat.distance + ' km'"></span></div>
+                                <p class="text-[10px] text-slate-400 truncate" x-text="chat.university"></p>
+                            </div>
+                            <!-- Badge Notification -->
+                            <template x-if="chat.unread_count > 0">
+                                <div class="unread-badge" x-text="chat.unread_count"></div>
+                            </template>
                         </div>
-                        <script>
+                    </template>
+                </div>
+
+                <!-- ACTUS (Style Facebook) -->
+                <div x-show="activeTab === 'actus'" class="p-2 space-y-4 bg-[#F0F2F5]/30 min-h-full">
+                    <template x-for="s in stories" :key="s.id">
+                        <div class="bg-white rounded-2xl shadow-sm border border-love-soft overflow-hidden">
+                            <div class="p-3 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-full bg-love-soft border border-love-accent flex items-center justify-center text-[10px] font-bold text-love-accent">🎓</div>
+                                    <span class="font-bold text-sm" x-text="s.author_name || 'Étudiant'"></span>
+                                </div>
+                                <button x-show="s.user_id === session?.user?.id" @click="deleteStory(s.id)" class="text-red-300 p-2"><iconify-icon icon="solar:trash-bin-trash-bold"></iconify-icon></button>
+                            </div>
+                            <img :src="s.photo_url" class="w-full max-h-[500px] object-cover bg-love-soft">
+                            <div class="p-3"><p class="text-sm leading-relaxed" x-text="s.caption"></p></div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- CAMPUS -->
+                <div x-show="activeTab === 'campus'">
+                    <template x-if="!selectedUni">
+                        <div class="p-4 space-y-2">
+                            <template x-for="uni in universities" :key="uni.id">
+                                <div @click="viewUni(uni)" class="p-4 bg-white rounded-2xl shadow-sm border border-love-soft flex items-center gap-4 cursor-pointer">
+                                    <div class="w-10 h-10 bg-love-soft rounded-xl flex items-center justify-center text-love-accent font-black italic">L</div>
+                                    <span class="text-sm font-bold" x-text="uni.name"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <template x-if="selectedUni">
+                        <div>
+                            <header class="p-4 bg-love-soft/30 flex items-center gap-4">
+                                <button @click="selectedUni = null"><iconify-icon icon="solar:arrow-left-bold" width="24" class="text-love-accent"></iconify-icon></button>
+                                <span class="font-bold text-xs truncate" x-text="selectedUni.name"></span>
+                            </header>
+                            <template x-for="stu in studentsOfUni" :key="stu.id">
+                                <div @click="openChat(stu)" class="p-4 border-b border-love-soft/10 flex items-center gap-4 cursor-pointer hover:bg-love-soft/10">
+                                    <div class="w-12 h-12 rounded-full overflow-hidden border bg-white shadow-sm"><img :src="stu.avatar_url || 'https://api.dicebear.com/7.x/adventurer/svg?seed='+stu.full_name" class="w-full h-full object-cover"></div>
+                                    <span class="font-bold text-sm" x-text="stu.full_name"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- SECRETS -->
+                <div x-show="activeTab === 'secrets'" class="p-6 space-y-4">
+                    <template x-for="sec in secrets" :key="sec.id">
+                        <div class="bg-white p-6 rounded-[2rem] shadow-sm border-b-4 border-love-soft">
+                            <p class="text-sm italic text-love-text" x-text="sec.content"></p>
+                            <span class="text-[9px] opacity-20 mt-4 block font-bold text-right uppercase">🤫 Anonyme</span>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- PARAMETRES -->
+                <div x-show="activeTab === 'settings'" class="p-6 space-y-6">
+                    <div class="flex flex-col items-center">
+                        <label class="relative cursor-pointer group">
+                            <input type="file" @change="updateProfilePhoto" class="hidden" accept="image/*">
+                            <div class="w-32 h-32 rounded-[2.5rem] border-4 border-love-accent overflow-hidden shadow-xl">
+                                <img :src="profile?.avatar_url || 'https://api.dicebear.com/7.x/adventurer/svg?seed='+profile?.full_name" class="w-full h-full object-cover">
+                            </div>
+                            <div class="absolute bottom-0 right-0 bg-love-accent text-white p-2 rounded-full border-4 border-white shadow-lg"><iconify-icon icon="solar:camera-bold"></iconify-icon></div>
+                        </label>
+                        <h2 class="mt-4 text-xl font-bold" x-text="profile?.full_name"></h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-love-soft">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Modifier mon nom</p>
+                            <input type="text" x-model="profile.full_name" @blur="saveProfile" class="w-full font-bold outline-none mt-1">
+                        </div>
+                        <button @click="signOut" class="w-full p-4 bg-white text-red-500 font-bold rounded-2xl border border-red-50 flex items-center justify-between">Se déconnecter <iconify-icon icon="solar:logout-bold"></iconify-icon></button>
+                        <button @click="deleteAccount" class="w-full p-4 text-slate-300 text-[10px] font-bold uppercase tracking-widest text-center mt-10">Supprimer mon compte définitivement</button>
+                    </div>
+                </div>
+            </main>
+
+            <!-- BOUTONS FLOTTANTS -->
+            <div class="fixed bottom-24 right-6 flex flex-col gap-3 z-50" x-show="activeTab !== 'settings'">
+                <template x-if="activeTab === 'actus'"><label class="w-14 h-14 bg-love-accent text-white rounded-2xl shadow-xl flex items-center justify-center cursor-pointer active:scale-90 transition-transform"><input type="file" @change="uploadStatus" class="hidden" accept="image/*"><iconify-icon icon="solar:camera-bold" width="28"></iconify-icon></label></template>
+                <template x-if="activeTab === 'secrets'"><button @click="openSecret" class="w-14 h-14 bg-love-accent text-white rounded-2xl shadow-xl flex items-center justify-center active:scale-90 transition-transform"><iconify-icon icon="solar:pen-bold" width="28"></iconify-icon></button></template>
+            </div>
+
+            <!-- BARRE BAS -->
+            <nav class="fixed bottom-0 w-full bg-white border-t border-love-soft grid grid-cols-4 pb-2 z-[60]">
+                <button @click="activeTab = 'chats'" class="flex flex-col items-center py-3" :class="activeTab === 'chats' ? 'text-love-accent' : 'text-slate-400'"><iconify-icon icon="solar:chat-round-dots-bold" width="24"></iconify-icon><span class="text-[9px] font-bold">Chats</span></button>
+                <button @click="activeTab = 'actus'" class="flex flex-col items-center py-3" :class="activeTab === 'actus' ? 'text-love-accent' : 'text-slate-400'"><iconify-icon icon="solar:star-circle-bold" width="24"></iconify-icon><span class="text-[9px] font-bold">Actus</span></button>
+                <button @click="activeTab = 'campus'" class="flex flex-col items-center py-3" :class="activeTab === 'campus' ? 'text-love-accent' : 'text-slate-400'"><iconify-icon icon="solar:users-group-rounded-bold" width="24"></iconify-icon><span class="text-[9px] font-bold">Campus</span></button>
+                <button @click="activeTab = 'secrets'" class="flex flex-col items-center py-3" :class="activeTab === 'secrets' ? 'text-love-accent' : 'text-slate-400'"><iconify-icon icon="solar:mask-happly-bold" width="24"></iconify-icon><span class="text-[9px] font-bold">Secrets</span></button>
+            </nav>
+
+            <!-- CHAT PRIVÉ (Notification & Coches Bleues) -->
+            <div x-show="activeChat" class="fixed inset-0 bg-white z-[1000] flex flex-col">
+                <header class="p-4 bg-white border-b border-love-soft flex items-center gap-4">
+                    <button @click="activeChat = null"><iconify-icon icon="solar:arrow-left-bold" width="24" class="text-love-accent"></iconify-icon></button>
+                    <p class="font-bold text-sm flex-1" x-text="activeChat?.full_name"></p>
+                    <span class="text-[9px] text-green-500 font-bold uppercase tracking-widest">En ligne</span>
+                </header>
+                <div class="flex-1 overflow-y-auto p-4 space-y-4" id="cbox">
+                    <template x-for="m in messages" :key="m.id">
+                        <div class="flex" :class="m.sender_id === session.user.id ? 'justify-end' : 'justify-start'">
+                            <div class="p-4 rounded-[2rem] text-sm max-w-[85%] shadow-sm relative" :class="m.sender_id === session.user.id ? 'bg-love-accent text-white rounded-tr-none' : 'bg-love-soft/30 text-love-text border rounded-tl-none border-love-soft'">
+                                <p x-text="m.content"></p>
+                                <!-- Doubles coches bleues -->
+                                <template x-if="m.sender_id === session.user.id">
+                                    <div class="flex justify-end mt-1">
+                                        <iconify-icon :icon="m.is_read ? 'mingcute:check-2-fill' : 'mingcute:check-fill'" :class="m.is_read ? 'text-blue-400' : 'text-white/40'" width="14"></iconify-icon>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div class="p-4 bg-white flex gap-2">
+                    <input type="text" x-model="newMessage" @keyup.enter="sendMessage" placeholder="Message..." class="flex-1 bg-love-soft/30 p-4 rounded-full outline-none text-sm border-none shadow-inner">
+                    <button @click="sendMessage" class="w-14 h-14 bg-love-accent text-white rounded-full flex items-center justify-center active:scale-95 transition-all"><iconify-icon icon="solar:paper-plane-bold" width="22"></iconify-icon></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('kelvinApp', () => ({
                 session: null, activeTab: 'chats', activeChat: null, mode: 'login',
@@ -136,30 +234,36 @@
                 selectedUni: null, studentsOfUni: [], newMessage: '', loadingScreen: true,
                 showGuide: false,
                 form: { name: '', email: '', password: '', university: '', gender: '', age: '', lat: null, lng: null },
-                profile: { full_name: '', avatar_url: '', university: '', gender: '', age: '' },
+                profile: { full_name: '', avatar_url: '', phone: '', university: '', gender: '', age: '' },
 
                 async init() {
+                    // Sécurité : On retire le loader quoi qu'il arrive
+                    setTimeout(() => { this.loadingScreen = false }, 2000);
+
                     const { data } = await sb.auth.getSession();
                     this.session = data.session;
                     
-                    // Vérifier si c'est la première fois pour le GUIDE
-                    if (this.session && !localStorage.getItem('guide_done')) {
+                    // Gestion du GUIDE (s'affiche une fois)
+                    if (this.session && !localStorage.getItem('guide_vu')) {
                         this.showGuide = true;
                     }
 
-                    this.loadingScreen = false;
-                    this.loadData();
+                    await this.loadInitialData();
+
                     if (this.session) {
                         await this.loadProfile();
-                        this.updateStatusAndGPS();
+                        this.updatePresenceAndGPS();
+                        this.loadChatsWithBadges();
+                        this.listenToMessages();
                     }
+                    this.loadingScreen = false;
                 },
 
-                // INSCRIPTION AVEC AGE, SEXE ET GPS
+                // 1. AUTHENTIFICATION (GPS + AGE + GENRE)
                 async handleAuth() {
                     try {
                         if (this.mode === 'signup') {
-                            // On essaie de choper le GPS avant tout
+                            // Demander la position avant de s'inscrire
                             await this.getGPS();
 
                             const { data, error } = await sb.auth.signUp({ 
@@ -168,7 +272,7 @@
                             });
                             if (error) throw error;
 
-                            // SAUVEGARDE DANS PROFILES
+                            // Sauvegarder les colonnes dans la table PROFILES
                             await sb.from('profiles').update({ 
                                 full_name: this.form.name, 
                                 university: this.form.university,
@@ -180,41 +284,180 @@
 
                             alert("Inscription réussie !");
                         } else {
-                            await sb.auth.signInWithPassword({ email: this.form.email, password: this.form.password });
+                            const { error } = await sb.auth.signInWithPassword({ 
+                                email: this.form.email, 
+                                password: this.form.password 
+                            });
+                            if (error) throw error;
                             location.reload();
                         }
                     } catch (e) { alert(e.message) }
                 },
 
+                // 2. CHARGEMENT DES DONNÉES
+                async loadInitialData() {
+                    sb.from('universities').select('*').order('name').then(({data}) => this.universities = data || []);
+                    sb.from('secrets').select('*').order('created_at', {ascending: false}).then(({data}) => this.secrets = data || []);
+                    this.loadStories();
+                },
+
+                async loadStories() {
+                    // Jointure pour avoir le nom de l'auteur du statut
+                    const { data } = await sb.from('stories').select('*, profiles(full_name)').order('created_at', {ascending: false});
+                    if (data) {
+                        this.stories = data.map(s => ({
+                            ...s,
+                            author_name: s.profiles ? s.profiles.full_name : 'Étudiant'
+                        }));
+                    }
+                },
+
+                async loadChatsWithBadges() {
+                    const { data: users } = await sb.from('profiles').select('*').neq('id', this.session.user.id);
+                    if (users) {
+                        const results = [];
+                        for (let u of users) {
+                            // Compter les messages non lus de cet utilisateur pour MOI
+                            const { count } = await sb.from('messages')
+                                .select('*', { count: 'exact', head: true })
+                                .eq('sender_id', u.id)
+                                .eq('receiver_id', this.session.user.id)
+                                .eq('is_read', false);
+                            
+                            u.unread_count = count || 0;
+                            u.distance = this.calcDist(this.profile?.latitude, this.profile?.longitude, u.latitude, u.longitude).toFixed(1);
+                            results.push(u);
+                        }
+                        this.chatList = results;
+                    }
+                },
+
+                // 3. CAMPUS
+                async viewUni(uni) {
+                    this.selectedUni = uni;
+                    const { data } = await sb.from('profiles').select('*').eq('university', uni.name).neq('id', this.session.user.id);
+                    this.studentsOfUni = data || [];
+                },
+
+                // 4. MESSAGERIE (Coches bleues)
+                async openChat(user) {
+                    this.activeChat = user;
+                    // Marquer comme Lu
+                    await sb.from('messages').update({ is_read: true })
+                        .eq('sender_id', user.id)
+                        .eq('receiver_id', this.session.user.id);
+                    
+                    this.fetchMessages();
+                    this.loadChatsWithBadges(); // Effacer le badge rose
+                },
+
+                async fetchMessages() {
+                    if (!this.activeChat) return;
+                    const { data } = await sb.from('messages')
+                        .select('*')
+                        .or(`and(sender_id.eq.${this.session.user.id},receiver_id.eq.${this.activeChat.id}),and(sender_id.eq.${this.activeChat.id},receiver_id.eq.${this.session.user.id})`)
+                        .order('created_at', { ascending: true });
+                    this.messages = data || [];
+                    setTimeout(() => { const el = document.getElementById('cbox'); if(el) el.scrollTop = el.scrollHeight }, 100);
+                },
+
+                async sendMessage() {
+                    if (!this.newMessage.trim()) return;
+                    const txt = this.newMessage;
+                    this.newMessage = '';
+                    await sb.from('messages').insert({ 
+                        sender_id: this.session.user.id, 
+                        receiver_id: this.activeChat.id, 
+                        content: txt,
+                        is_read: false 
+                    });
+                    this.fetchMessages();
+                },
+
+                // 5. FONCTIONS PROFILS & STORIES
+                async updateProfilePhoto(e) {
+                    const f = e.target.files[0];
+                    const path = `avatars/${this.session.user.id}-${Date.now()}.png`;
+                    const { error } = await sb.storage.from('avatars').upload(path, f, { upsert: true });
+                    if (!error) {
+                        const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(path);
+                        await sb.from('profiles').update({ avatar_url: publicUrl }).eq('id', this.session.user.id);
+                        this.profile.avatar_url = publicUrl;
+                    }
+                },
+
+                async uploadStatus(e) {
+                    const f = e.target.files[0];
+                    if (!f) return;
+                    const name = `status/${Date.now()}.png`;
+                    const { data, error } = await sb.storage.from('avatars').upload(name, f);
+                    if (!error) {
+                        const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(name);
+                        const cap = prompt("Légende de ta publication :");
+                        await sb.from('stories').insert({ user_id: this.session.user.id, photo_url: publicUrl, caption: cap || "" });
+                        this.loadStories();
+                    }
+                },
+
+                async deleteStory(id) {
+                    if(confirm("Supprimer cette publication ?")) {
+                        await sb.from('stories').delete().eq('id', id);
+                        this.loadStories();
+                    }
+                },
+
+                // 6. UTILS (GPS, Realtime, Guide)
                 async getGPS() {
-                    return new Promise((resolve) => {
-                        if (!navigator.geolocation) return resolve();
+                    return new Promise((res) => {
                         navigator.geolocation.getCurrentPosition((p) => {
                             this.form.lat = p.coords.latitude;
                             this.form.lng = p.coords.longitude;
-                            resolve();
-                        }, () => resolve());
+                            res();
+                        }, () => res());
                     });
                 },
 
-                async updateStatusAndGPS() {
+                async updatePresenceAndGPS() {
                     navigator.geolocation.getCurrentPosition(async (p) => {
                         await sb.from('profiles').update({ 
                             latitude: p.coords.latitude, 
                             longitude: p.coords.longitude,
-                            last_seen: new Date()
+                            last_seen: new Date() 
                         }).eq('id', this.session.user.id);
                     });
                 },
 
-                closeGuide() {
-                    this.showGuide = false;
-                    localStorage.setItem('guide_done', 'true');
+                listenToMessages() {
+                    sb.channel('realtime').on('postgres_changes', { event: '*', schema: 'public' }, () => {
+                        this.fetchMessages();
+                        this.loadChatsWithBadges();
+                        this.loadStories();
+                    }).subscribe();
                 },
 
-                // (Garde tes fonctions loadData, viewUni, openChat, etc. ici)
-                
-                async signOut() { await sb.auth.signOut(); location.reload(); }
+                closeGuide() {
+                    this.showGuide = false;
+                    localStorage.setItem('guide_vu', 'true');
+                },
+
+                calcDist(lat1, lon1, lat2, lon2) {
+                    if (!lat1 || !lat2) return 0;
+                    const R = 6371;
+                    const dLat = (lat2-lat1) * Math.PI/180;
+                    const dLon = (lon2-lon1) * Math.PI/180;
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)*Math.sin(dLon/2);
+                    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                },
+
+                async deleteAccount() {
+                    if(confirm("Supprimer définitivement ton compte ?")) {
+                        await sb.rpc('delete_user_account');
+                        await sb.auth.signOut();
+                        location.reload();
+                    }
+                },
+
+                async signOut() { await sb.auth.signOut(); location.reload() }
             }));
         });
     </script>
