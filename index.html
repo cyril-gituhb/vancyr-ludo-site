@@ -3,29 +3,29 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kelvin Loving | Campus Connect</title>
+    <title>Kelvin Loving | Soft Edition</title>
     
-    <!-- Scripts avec chargement prioritaire -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
 
     <script>
-        // CONFIGURATION SUPABASE SÉCURISÉE
         const SUPABASE_URL = 'https://oemqhxmmoxykrqqhwnqq.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9lbXFoeG1tb3h5a3JxcWh3bnFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3OTM3MzksImV4cCI6MjEwMTM2OTczOX0.F7lVdMft0gQEyGiQYrnE5BMaTcu3nxMQa8D1CX0icbQ';
-        
-        // On déclare la variable globale pour le client
-        let sbClient;
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        wa: { dark: '#0b141a', light: '#121b22', yellow: '#fedd02', gray: '#8696a0' }
+                        love: {
+                            light: '#FFF9F9', // Fond clair
+                            soft: '#F8E7E7', // Secondaire
+                            accent: '#D988B9', // Rose Amour
+                            text: '#4A3B3B' // Texte doux
+                        }
                     }
                 }
             }
@@ -34,246 +34,296 @@
 
     <style>
         [x-cloak] { display: none !important; }
-        body { background-color: #0b141a; color: white; font-family: 'Outfit', sans-serif; margin: 0; padding: 0; }
-        .chat-pattern { 
-            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); 
-            background-repeat: repeat; opacity: 0.05; position: absolute; inset: 0; pointer-events: none;
-        }
-        .tab-active { color: #fedd02; border-bottom: 3px solid #fedd02; }
+        body { background-color: #FFF9F9; color: #4A3B3B; font-family: 'Outfit', sans-serif; }
+        .story-card { background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%); }
+        .tab-active { color: #D988B9; border-bottom: 3px solid #D988B9; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body>
+<body x-data="kelvinSoft">
 
-    <!-- Message de chargement si Alpine met du temps -->
-    <div id="loader" style="position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #0b141a; z-index: 9999;">
-        <iconify-icon icon="line-md:loading-twotone-loop" style="color: #fedd02; font-size: 50px;"></iconify-icon>
-    </div>
+    <template x-if="!session">
+        <!-- AUTH CLAIRE -->
+        <div class="h-screen flex flex-col items-center justify-center p-8 text-center bg-[#FFF5F5]">
+            <div class="w-24 h-24 bg-love-accent rounded-full mb-6 flex items-center justify-center shadow-xl">
+                <iconify-icon icon="solar:heart-bold" class="text-white text-5xl"></iconify-icon>
+            </div>
+            <h1 class="text-3xl font-bold text-love-text">Kelvin Loving</h1>
+            <p class="text-slate-400 mb-8">L'amour au campus, en toute douceur.</p>
+            <div class="w-full max-w-sm space-y-4">
+                <template x-if="mode === 'signup'">
+                    <div class="space-y-4">
+                        <input type="text" x-model="form.name" placeholder="Nom Complet" class="w-full p-4 bg-white rounded-2xl border-none shadow-sm">
+                        <input type="tel" x-model="form.phone" placeholder="Numéro WhatsApp" class="w-full p-4 bg-white rounded-2xl border-none shadow-sm">
+                    </div>
+                </template>
+                <input type="email" x-model="form.email" placeholder="Email" class="w-full p-4 bg-white rounded-2xl shadow-sm border-none">
+                <input type="password" x-model="form.password" placeholder="Mot de passe" class="w-full p-4 bg-white rounded-2xl shadow-sm border-none">
+                <button @click="handleAuth" class="w-full bg-love-accent text-white font-bold py-4 rounded-2xl shadow-lg shadow-rose-200">Continuer</button>
+                <button @click="mode = (mode === 'signup' ? 'login' : 'signup')" class="text-xs text-love-accent font-bold uppercase tracking-widest mt-4" x-text="mode === 'signup' ? 'J\'ai déjà un compte' : 'Créer un compte'"></button>
+            </div>
+        </div>
+    </template>
 
-    <div x-data="kelvinApp" x-cloak>
-        
-        <!-- 1. ÉCRAN CONNEXION -->
-        <template x-if="!session">
-            <div class="h-screen w-full flex flex-col items-center justify-center p-8">
-                <div class="w-20 h-20 bg-wa-yellow rounded-3xl mb-8 flex items-center justify-center shadow-2xl">
-                    <iconify-icon icon="solar:heart-bold" class="text-wa-dark text-5xl"></iconify-icon>
+    <template x-if="session">
+        <div class="h-screen flex flex-col">
+            
+            <!-- TOP BAR -->
+            <header class="p-4 flex justify-between items-center bg-white border-b border-love-soft sticky top-0 z-50">
+                <h1 class="text-2xl font-bold text-love-accent italic">Kelvin</h1>
+                <div class="flex gap-4 text-slate-400">
+                    <iconify-icon icon="solar:magnifer-bold" width="24"></iconify-icon>
+                    <button @click="showProfile = true"><iconify-icon icon="solar:user-circle-bold" width="28" class="text-love-accent"></iconify-icon></button>
                 </div>
-                <h1 class="text-4xl font-black mb-10">Kelvin Loving</h1>
-                <div class="w-full max-w-sm space-y-4">
-                    <template x-if="mode === 'signup'">
-                        <div class="space-y-4">
-                            <input type="text" x-model="form.name" placeholder="Nom Complet" class="w-full p-4 bg-wa-light rounded-2xl border-none outline-none focus:ring-2 ring-wa-yellow text-white">
-                            <select x-model="form.university" class="w-full p-4 bg-wa-light rounded-2xl border-none outline-none focus:ring-2 ring-wa-yellow text-white">
-                                <option value="">Choisir ton université...</option>
-                                <template x-for="uni in universitiesList" :key="uni.id">
-                                    <option :value="uni.name" x-text="uni.name"></option>
-                                </template>
-                            </select>
+            </header>
+
+            <!-- TABS -->
+            <div class="flex bg-white border-b border-love-soft overflow-x-auto">
+                <button @click="activeTab = 'chats'" class="flex-1 py-4 text-sm font-bold" :class="activeTab === 'chats' ? 'tab-active' : 'text-slate-400'">Discussions</button>
+                <button @click="activeTab = 'actus'" class="flex-1 py-4 text-sm font-bold" :class="activeTab === 'actus' ? 'tab-active' : 'text-slate-400'">Actus</button>
+                <button @click="activeTab = 'campus'" class="flex-1 py-4 text-sm font-bold" :class="activeTab === 'campus' ? 'tab-active' : 'text-slate-400'">Campus</button>
+                <button @click="activeTab = 'secrets'" class="flex-1 py-4 text-sm font-bold" :class="activeTab === 'secrets' ? 'tab-active' : 'text-slate-400'">Secrets</button>
+            </div>
+
+            <!-- CONTENT -->
+            <main class="flex-1 overflow-y-auto pb-24">
+                
+                <!-- ACTUS (Status avec Photos) -->
+                <div x-show="activeTab === 'actus'" class="p-4 grid grid-cols-2 gap-4">
+                    <div class="h-64 rounded-3xl bg-love-soft flex flex-col items-center justify-center border-2 border-dashed border-love-accent text-love-accent">
+                        <iconify-icon icon="solar:add-circle-bold" width="40"></iconify-icon>
+                        <span class="text-xs font-bold mt-2">Publier une Actu</span>
+                    </div>
+                    <template x-for="story in stories" :key="story.id">
+                        <div class="h-64 rounded-3xl bg-slate-200 relative overflow-hidden shadow-md">
+                            <img :src="story.photo_url" class="w-full h-full object-cover">
+                            <div class="story-card absolute inset-0 p-3 flex flex-col justify-end">
+                                <p class="text-white text-[10px] mb-2" x-text="story.caption"></p>
+                                <div class="flex items-center gap-2">
+                                    <iconify-icon icon="solar:heart-bold" class="text-rose-500"></iconify-icon>
+                                    <span class="text-white text-[10px] font-bold" x-text="story.likes_count"></span>
+                                </div>
+                            </div>
                         </div>
                     </template>
-                    <input type="email" x-model="form.email" placeholder="Email" class="w-full p-4 bg-wa-light rounded-2xl border-none outline-none">
-                    <input type="password" x-model="form.password" placeholder="Mot de passe" class="w-full p-4 bg-wa-light rounded-2xl border-none outline-none">
-                    <button @click="handleAuth" class="w-full bg-wa-yellow text-wa-dark font-black py-4 rounded-2xl">
-                        <span x-text="mode === 'signup' ? 'S\'INSCRIRE' : 'SE CONNECTER'"></span>
-                    </button>
-                    <button @click="mode = (mode === 'signup' ? 'login' : 'signup')" class="w-full text-wa-gray text-xs font-bold uppercase mt-4">
-                        <span x-text="mode === 'signup' ? 'Déjà inscrit ? Connexion' : 'Pas de compte ? Inscription'"></span>
-                    </button>
                 </div>
-            </div>
-        </template>
 
-        <!-- 2. INTERFACE WHATSAPP -->
-        <template x-if="session">
-            <div class="h-screen flex flex-col">
-                <header class="p-4 flex justify-between items-center bg-wa-dark border-b border-white/5">
-                    <h1 class="text-2xl font-black text-wa-yellow italic">WhatsApp</h1>
-                    <div class="flex gap-4 text-wa-gray">
-                        <iconify-icon icon="solar:camera-bold" width="24"></iconify-icon>
-                        <iconify-icon icon="solar:magnifer-bold" width="24"></iconify-icon>
-                        <button @click="signOut"><iconify-icon icon="solar:logout-bold" width="24"></iconify-icon></button>
+                <!-- CHATS -->
+                <div x-show="activeTab === 'chats'" class="divide-y divide-love-soft">
+                    <template x-for="chat in chatList" :key="chat.id">
+                        <div @click="openChat(chat)" class="flex items-center gap-4 p-4 hover:bg-love-soft transition-colors">
+                            <div class="w-14 h-14 bg-love-soft rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden">
+                                <img :src="chat.avatar_url || 'https://api.dicebear.com/7.x/adventurer/svg?seed='+chat.full_name" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="font-bold text-love-text" x-text="chat.full_name"></h3>
+                                    <span class="text-[9px] font-bold" :class="chat.is_online ? 'text-green-500' : 'text-slate-400'" x-text="chat.is_online ? 'En ligne' : chat.last_seen_formatted"></span>
+                                </div>
+                                <p class="text-[10px] text-love-accent font-bold" x-text="chat.distance + ' km'"></p>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- SECRETS (Anonymes) -->
+                <div x-show="activeTab === 'secrets'" class="p-6 space-y-4">
+                    <div class="text-center mb-6">
+                        <h2 class="font-bold text-love-accent">Espace Confidences</h2>
+                        <p class="text-[10px] text-slate-400">Tout ce qui se dit ici reste entre nous.</p>
+                    </div>
+                    <template x-for="sec in secrets" :key="sec.id">
+                        <div class="bg-white p-6 rounded-3xl shadow-sm border-b-4 border-love-accent/20">
+                            <p class="text-sm italic text-love-text" x-text="sec.content"></p>
+                            <div class="mt-4 flex items-center justify-between opacity-40 text-[9px]">
+                                <span>🔒 Anonyme</span>
+                                <span x-text="new Date(sec.created_at).toLocaleDateString()"></span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- CAMPUS -->
+                <div x-show="activeTab === 'campus'" class="p-4">
+                    <template x-for="uni in universities" :key="uni.id">
+                        <div class="p-4 bg-white mb-2 rounded-2xl flex items-center gap-4 shadow-sm">
+                            <div class="w-10 h-10 bg-love-soft rounded-xl flex items-center justify-center text-love-accent italic font-black">L</div>
+                            <span class="font-bold text-sm" x-text="uni.name"></span>
+                        </div>
+                    </template>
+                </div>
+
+            </main>
+
+            <!-- CHAT WINDOW -->
+            <div x-show="activeChat" x-cloak class="fixed inset-0 bg-love-light z-[100] flex flex-col">
+                <header class="p-4 bg-white border-b border-love-soft flex items-center gap-4">
+                    <button @click="activeChat = null"><iconify-icon icon="solar:arrow-left-bold" width="24" class="text-love-accent"></iconify-icon></button>
+                    <div class="w-10 h-10 rounded-full border-2 border-love-accent overflow-hidden">
+                        <img :src="activeChat?.avatar_url || 'https://api.dicebear.com/7.x/adventurer/svg?seed='+activeChat?.full_name" class="w-full h-full">
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-bold text-sm" x-text="activeChat?.full_name"></p>
+                        <p class="text-[10px] font-bold" :class="activeChat?.is_online ? 'text-green-500' : 'text-slate-400'" x-text="activeChat?.is_online ? 'En ligne' : activeChat?.last_seen_formatted"></p>
                     </div>
                 </header>
-
-                <!-- Tabs Navigation -->
-                <div class="flex bg-wa-dark border-b border-white/5">
-                    <button @click="activeTab = 'chats'" class="flex-1 py-3 text-center text-sm font-bold" :class="activeTab === 'chats' ? 'tab-active' : 'text-wa-gray'">Discussions</button>
-                    <button @click="activeTab = 'actus'" class="flex-1 py-3 text-center text-sm font-bold" :class="activeTab === 'actus' ? 'tab-active' : 'text-wa-gray'">Actus</button>
-                    <button @click="activeTab = 'campus'" class="flex-1 py-3 text-center text-sm font-bold" :class="activeTab === 'campus' ? 'tab-active' : 'text-wa-gray'">Campus</button>
-                    <button @click="activeTab = 'confessions'" class="flex-1 py-3 text-center text-sm font-bold" :class="activeTab === 'confessions' ? 'tab-active' : 'text-wa-gray'">Secrets</button>
+                <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#FFFBFB]">
+                    <template x-for="m in messages" :key="m.id">
+                        <div class="flex" :class="m.sender_id === session.user.id ? 'justify-end' : 'justify-start'">
+                            <div class="p-4 rounded-[2rem] text-sm max-w-[85%] shadow-sm" :class="m.sender_id === session.user.id ? 'bg-love-accent text-white rounded-tr-none' : 'bg-white text-love-text rounded-tl-none border border-love-soft'">
+                                <p x-text="m.content"></p>
+                            </div>
+                        </div>
+                    </template>
                 </div>
-
-                <main class="flex-1 overflow-y-auto pb-20">
-                    <!-- Liste Campus -->
-                    <div x-show="activeTab === 'campus'">
-                        <template x-if="!selectedUni">
-                            <div class="divide-y divide-white/5">
-                                <template x-for="uni in universitiesList" :key="uni.id">
-                                    <div @click="fetchStudents(uni)" class="p-4 flex items-center gap-4 hover:bg-wa-light">
-                                        <div class="w-12 h-12 bg-wa-yellow/10 rounded-xl flex items-center justify-center text-wa-yellow text-2xl">🏛️</div>
-                                        <div>
-                                            <p class="font-bold text-sm" x-text="uni.name"></p>
-                                            <p class="text-[10px] text-wa-gray uppercase" x-text="uni.city"></p>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                        </template>
-                        <template x-if="selectedUni">
-                            <div>
-                                <div class="p-4 bg-wa-light flex items-center gap-4">
-                                    <button @click="selectedUni = null"><iconify-icon icon="solar:arrow-left-bold" width="24" class="text-wa-yellow"></iconify-icon></button>
-                                    <span class="font-bold text-sm" x-text="selectedUni.name"></span>
-                                </div>
-                                <template x-for="stu in studentsOfUni" :key="stu.id">
-                                    <div @click="openChat(stu)" class="p-4 flex items-center gap-4 hover:bg-wa-light border-b border-white/5">
-                                        <div class="w-12 h-12 bg-wa-dark rounded-full border border-wa-yellow flex items-center justify-center">🎓</div>
-                                        <p class="font-bold flex-1" x-text="stu.full_name"></p>
-                                        <iconify-icon icon="solar:chat-round-dots-bold" class="text-wa-gray"></iconify-icon>
-                                    </div>
-                                </template>
-                            </div>
-                        </template>
-                    </div>
-                    
-                    <!-- Discussions -->
-                    <div x-show="activeTab === 'chats'">
-                        <template x-for="chat in chatList" :key="chat.id">
-                            <div @click="openChat(chat)" class="p-4 flex items-center gap-4 hover:bg-wa-light">
-                                <div class="w-14 h-14 bg-wa-light rounded-full border border-wa-yellow/20 flex items-center justify-center text-2xl">👤</div>
-                                <div class="flex-1 border-b border-white/5 pb-4">
-                                    <div class="flex justify-between"><p class="font-bold" x-text="chat.full_name"></p><span class="text-[10px] text-wa-gray">10:00</span></div>
-                                    <p class="text-sm text-wa-gray truncate" x-text="chat.university"></p>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                </main>
-
-                <!-- Navigation Bas -->
-                <nav class="fixed bottom-0 w-full bg-wa-dark border-t border-white/5 flex justify-around p-2">
-                    <button @click="activeTab = 'chats'" class="flex flex-col items-center p-2" :class="activeTab === 'chats' ? 'text-wa-yellow' : 'text-wa-gray'">
-                        <iconify-icon icon="solar:chat-round-dots-bold" width="24"></iconify-icon>
-                        <span class="text-[10px] font-bold">Chats</span>
+                <div class="p-4 bg-white flex gap-2">
+                    <input type="text" x-model="newMessage" placeholder="Écris avec amour..." class="flex-1 bg-love-light p-4 rounded-full border-none outline-none text-sm">
+                    <button @click="sendMessage" class="w-14 h-14 bg-love-accent text-white rounded-full flex items-center justify-center shadow-lg shadow-rose-200">
+                        <iconify-icon icon="solar:paper-plane-bold" width="24"></iconify-icon>
                     </button>
-                    <button @click="activeTab = 'actus'" class="flex flex-col items-center p-2" :class="activeTab === 'actus' ? 'text-wa-yellow' : 'text-wa-gray'">
-                        <iconify-icon icon="solar:star-circle-bold" width="24"></iconify-icon>
-                        <span class="text-[10px] font-bold">Actus</span>
-                    </button>
-                    <button @click="activeTab = 'campus'" class="flex flex-col items-center p-2" :class="activeTab === 'campus' ? 'text-wa-yellow' : 'text-wa-gray'">
-                        <iconify-icon icon="solar:users-group-rounded-bold" width="24"></iconify-icon>
-                        <span class="text-[10px] font-bold">Campus</span>
-                    </button>
-                    <button @click="activeTab = 'confessions'" class="flex flex-col items-center p-2" :class="activeTab === 'confessions' ? 'text-wa-yellow' : 'text-wa-gray'">
-                        <iconify-icon icon="solar:mask-happly-bold" width="24"></iconify-icon>
-                        <span class="text-[10px] font-bold">Secrets</span>
-                    </button>
-                </nav>
-
-                <!-- Fenêtre Chat -->
-                <div x-show="activeChat" x-cloak class="fixed inset-0 bg-wa-dark z-[100] flex flex-col">
-                    <header class="p-4 bg-wa-light flex items-center gap-4">
-                        <button @click="activeChat = null"><iconify-icon icon="solar:arrow-left-bold" width="24" class="text-wa-yellow"></iconify-icon></button>
-                        <div class="w-10 h-10 bg-wa-dark rounded-full border border-wa-yellow flex items-center justify-center">🎓</div>
-                        <div class="flex-1"><p class="font-bold" x-text="activeChat?.full_name"></p><p class="text-[10px] text-green-500 font-bold">en ligne</p></div>
-                    </header>
-                    <div class="flex-1 chat-pattern relative overflow-y-auto p-4 flex flex-col gap-2" id="chat-box">
-                        <template x-for="m in messages" :key="m.id">
-                            <div class="flex" :class="m.sender_id === session.user.id ? 'justify-end' : 'justify-start'">
-                                <div class="p-3 rounded-2xl max-w-[80%] text-sm" :class="m.sender_id === session.user.id ? 'bg-wa-yellow text-wa-dark rounded-tr-none' : 'bg-wa-light text-white rounded-tl-none'">
-                                    <span x-text="m.content"></span>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                    <div class="p-4 bg-wa-dark flex gap-2">
-                        <input type="text" x-model="newMessage" @keyup.enter="sendMessage" placeholder="Message" class="flex-1 bg-wa-light p-3 rounded-full outline-none text-sm">
-                        <button @click="sendMessage" class="w-12 h-12 bg-wa-yellow text-wa-dark rounded-full flex items-center justify-center shadow-lg"><iconify-icon icon="solar:paper-plane-bold" width="24"></iconify-icon></button>
-                    </div>
                 </div>
-
             </div>
-        </template>
-    </div>
+
+            <!-- PROFILE MODAL -->
+            <div x-show="showProfile" x-cloak class="fixed inset-0 z-[200] glass flex items-end">
+                <div class="w-full bg-white rounded-t-[3rem] p-8 space-y-6 shadow-2xl animate-in slide-in-from-bottom duration-300">
+                    <div class="flex flex-col items-center">
+                        <div class="w-32 h-32 rounded-[2rem] border-4 border-love-accent overflow-hidden mb-4 shadow-xl">
+                            <img :src="profile?.avatar_url || 'https://api.dicebear.com/7.x/adventurer/svg?seed='+profile?.full_name" class="w-full h-full object-cover">
+                        </div>
+                        <h2 class="text-2xl font-bold" x-text="profile?.full_name"></h2>
+                        <span class="text-xs font-bold text-love-accent uppercase" x-text="profile?.university"></span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 bg-love-light rounded-2xl">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase">WhatsApp</p>
+                            <p class="text-sm font-bold" x-text="profile?.phone || 'Non renseigné'"></p>
+                        </div>
+                        <div class="p-4 bg-love-light rounded-2xl">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase">Âge</p>
+                            <p class="text-sm font-bold" x-text="(profile?.age || '20') + ' ans'"></p>
+                        </div>
+                        <div class="p-4 bg-love-light rounded-2xl col-span-2">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase">Étudiant depuis le</p>
+                            <p class="text-sm font-bold" x-text="new Date(profile?.created_at).toLocaleDateString()"></p>
+                        </div>
+                    </div>
+                    <button @click="showProfile = false" class="w-full py-4 bg-love-accent text-white rounded-2xl font-bold">Retour</button>
+                </div>
+            </div>
+
+        </div>
+    </template>
 
     <script>
         document.addEventListener('alpine:init', () => {
-            // Initialisation Supabase
-            sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-            Alpine.data('kelvinApp', () => ({
-                session: null, mode: 'login', activeTab: 'chats', loading: false,
-                universitiesList: [], selectedUni: null, studentsOfUni: [],
-                chatList: [], activeChat: null, messages: [], newMessage: '',
-                form: { name: '', email: '', password: '', university: '' },
+            Alpine.data('kelvinSoft', () => ({
+                session: null, activeTab: 'chats', activeChat: null, showProfile: false,
+                mode: 'login', profile: null, chatList: [], universities: [],
+                stories: [], secrets: [], messages: [], newMessage: '',
+                form: { name: '', email: '', password: '', phone: '' },
+                userCoords: null,
 
                 async init() {
-                    document.getElementById('loader').style.display = 'none';
-                    const { data } = await sbClient.auth.getSession();
+                    const { data } = await sb.auth.getSession();
                     this.session = data.session;
                     this.fetchUniversities();
-                    if (this.session) { this.fetchChats(); this.listen(); }
-                },
-
-                async fetchUniversities() {
-                    const { data } = await sbClient.from('universities').select('*').order('name');
-                    this.universitiesList = data || [];
-                },
-
-                async fetchStudents(uni) {
-                    this.selectedUni = uni;
-                    const { data } = await sbClient.from('profiles').select('*').eq('university', uni.name);
-                    this.studentsOfUni = data || [];
+                    this.fetchSecrets();
+                    this.fetchStories();
+                    if (this.session) {
+                        await this.loadProfile();
+                        this.getGPS();
+                        this.fetchChats();
+                        this.listen();
+                        // Update online status every minute
+                        setInterval(() => this.updateOnlineStatus(), 60000);
+                    }
                 },
 
                 async handleAuth() {
-                    this.loading = true;
                     try {
                         if (this.mode === 'signup') {
-                            const { data, error } = await sbClient.auth.signUp({ email: this.form.email, password: this.form.password });
+                            const { data, error } = await sb.auth.signUp({ email: this.form.email, password: this.form.password });
                             if (error) throw error;
-                            await sbClient.from('profiles').update({ full_name: this.form.name, university: this.form.university }).eq('id', data.user.id);
-                            alert("Compte créé !"); this.mode = 'login';
+                            await sb.from('profiles').update({ full_name: this.form.name, phone: this.form.phone }).eq('id', data.user.id);
+                            alert("Vérifie ton email !");
                         } else {
-                            const { error } = await sbClient.auth.signInWithPassword({ email: this.form.email, password: this.form.password });
-                            if (error) throw error;
+                            await sb.auth.signInWithPassword({ email: this.form.email, password: this.form.password });
                             location.reload();
                         }
-                    } catch (e) { alert(e.message); } finally { this.loading = false; }
+                    } catch (e) { alert(e.message); }
+                },
+
+                async loadProfile() {
+                    const { data } = await sb.from('profiles').select('*').eq('id', this.session.user.id).single();
+                    this.profile = data;
+                },
+
+                async fetchUniversities() {
+                    const { data } = await sb.from('universities').select('*');
+                    this.universities = data || [];
+                },
+
+                async fetchSecrets() {
+                    const { data } = await sb.from('secrets').select('*').order('created_at', { ascending: false });
+                    this.secrets = data || [];
+                },
+
+                async fetchStories() {
+                    const { data } = await sb.from('stories').select('*').order('created_at', { ascending: false });
+                    this.stories = data || [];
                 },
 
                 async fetchChats() {
-                    const { data } = await sbClient.from('profiles').select('*').limit(10);
-                    this.chatList = data || [];
+                    const { data } = await sb.from('profiles').select('*').neq('id', this.session.user.id);
+                    this.chatList = data.map(u => ({
+                        ...u,
+                        distance: this.calcDist(this.profile.latitude, this.profile.longitude, u.latitude, u.longitude).toFixed(1),
+                        is_online: (new Date() - new Date(u.last_seen)) < 300000, // En ligne si vu il y a < 5min
+                        last_seen_formatted: 'Vu ' + new Date(u.last_seen).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+                    }));
                 },
 
-                async openChat(stu) {
-                    this.activeChat = stu;
-                    this.fetchMessages();
+                calcDist(lat1, lon1, lat2, lon2) {
+                    if (!lat1 || !lat2) return 0;
+                    const R = 6371;
+                    const dLat = (lat2-lat1) * Math.PI/180;
+                    const dLon = (lon2-lon1) * Math.PI/180;
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)*Math.sin(dLon/2);
+                    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
                 },
 
-                async fetchMessages() {
-                    const { data } = await sbClient.from('messages')
+                async updateOnlineStatus() {
+                    await sb.from('profiles').update({ last_seen: new Date() }).eq('id', this.session.user.id);
+                },
+
+                getGPS() {
+                    navigator.geolocation.getCurrentPosition(async (p) => {
+                        await sb.from('profiles').update({ 
+                            latitude: p.coords.latitude, 
+                            longitude: p.coords.longitude,
+                            last_seen: new Date() 
+                        }).eq('id', this.session.user.id);
+                    });
+                },
+
+                async openChat(user) {
+                    this.activeChat = user;
+                    const { data } = await sb.from('messages')
                         .select('*')
-                        .or(`and(sender_id.eq.${this.session.user.id},receiver_id.eq.${this.activeChat.id}),and(sender_id.eq.${this.activeChat.id},receiver_id.eq.${this.session.user.id})`)
+                        .or(`and(sender_id.eq.${this.session.user.id},receiver_id.eq.${user.id}),and(sender_id.eq.${user.id},receiver_id.eq.${this.session.user.id})`)
                         .order('created_at');
                     this.messages = data || [];
                 },
 
                 async sendMessage() {
-                    if (!this.newMessage.trim()) return;
-                    await sbClient.from('messages').insert({ sender_id: this.session.user.id, receiver_id: this.activeChat.id, content: this.newMessage });
-                    this.newMessage = ''; this.fetchMessages();
+                    if (!this.newMessage) return;
+                    await sb.from('messages').insert({ sender_id: this.session.user.id, receiver_id: this.activeChat.id, content: this.newMessage });
+                    this.newMessage = '';
+                    this.openChat(this.activeChat);
                 },
 
                 listen() {
-                    sbClient.channel('any').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
-                        if (this.activeChat) this.fetchMessages();
-                    }).subscribe();
-                },
-
-                async signOut() { await sbClient.auth.signOut(); location.reload(); }
-            }));
-        });
-    </script>
-</body>
-                                </html>
+                    sb.channel('global').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
+                        if(this.activeChat) this.openChat(this.activeChat);
+                    }).subscribe(
